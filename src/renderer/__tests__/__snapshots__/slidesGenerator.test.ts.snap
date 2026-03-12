@@ -1,0 +1,197 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renderSlides snapshot: slide deck HTML 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Presentation — Slides</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow: hidden;
+}
+
+.slides-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 6rem;
+}
+
+.slide.active { display: flex; }
+
+.slide-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+.slide-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.slide-subtitle {
+  font-size: 1.4rem;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+}
+
+.slide-body {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.slide-body ul { padding-left: 2rem; margin: 0.5rem 0; }
+.slide-body li { margin: 0.4rem 0; }
+.slide-body code { background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 4px; }
+.slide-body pre { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin: 1rem 0; overflow-x: auto; }
+.slide-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.slide-body th, .slide-body td { border: 1px solid #334155; padding: 0.5rem 0.8rem; text-align: left; }
+.slide-body th { background: rgba(255,255,255,0.05); }
+
+.slide-footer {
+  text-align: right;
+  font-size: 0.9rem;
+  color: #64748b;
+  padding-top: 1rem;
+}
+
+/* Slide type variations */
+.slide-title-slide { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+.slide-title-slide .slide-title { font-size: 3.5rem; }
+.slide-intro { border-left: 6px solid #6366f1; }
+.slide-problem { border-left: 6px solid #8b5cf6; }
+.slide-architecture { border-left: 6px solid #06b6d4; }
+.slide-roadmap { border-left: 6px solid #10b981; }
+.slide-next-steps { border-left: 6px solid #f59e0b; }
+.slide-content { border-left: 6px solid #9ca3af; }
+
+/* Navigation hint */
+.slides-container::after {
+  content: 'Use ← → arrow keys to navigate';
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #475569;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+</style>
+</head>
+<body>
+<div class="slides-container">
+<div class="slide slide-title" data-slide="1">
+  <div class="slide-content">
+    <h1 class="slide-title">Test Presentation</h1>
+    <p class="slide-subtitle">By Presenter</p>
+    <div class="slide-body"></div>
+  </div>
+  <div class="slide-footer">
+    <span>1 / 6</span>
+  </div>
+</div>
+<div class="slide slide-intro" data-slide="2">
+  <div class="slide-content">
+    <h1 class="slide-title">VISION</h1>
+    <p class="slide-subtitle">Build something great.</p>
+    <div class="slide-body"><p>Build something great.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>2 / 6</span>
+  </div>
+</div>
+<div class="slide slide-problem" data-slide="3">
+  <div class="slide-content">
+    <h1 class="slide-title">CONTEXT</h1>
+    <p class="slide-subtitle">For developers and architects.</p>
+    <div class="slide-body"><p>For developers and architects.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>3 / 6</span>
+  </div>
+</div>
+<div class="slide slide-architecture" data-slide="4">
+  <div class="slide-content">
+    <h1 class="slide-title">STRUCTURE</h1>
+    <p class="slide-subtitle">Modular system.</p>
+    <div class="slide-body"><p>Modular system.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>4 / 6</span>
+  </div>
+</div>
+<div class="slide slide-roadmap" data-slide="5">
+  <div class="slide-content">
+    <h1 class="slide-title">PLAN</h1>
+    <p class="slide-subtitle">Phase 1: Build.</p>
+    <div class="slide-body"><p>Phase 1: Build. Phase 2: Scale.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>5 / 6</span>
+  </div>
+</div>
+<div class="slide slide-next-steps" data-slide="6">
+  <div class="slide-content">
+    <h1 class="slide-title">TASKS</h1>
+    
+    <div class="slide-body"></div>
+  </div>
+  <div class="slide-footer">
+    <span>6 / 6</span>
+  </div>
+</div>
+</div>
+<script>
+(function() {
+  var slides = document.querySelectorAll('.slide');
+  var current = 0;
+
+  function show(index) {
+    slides.forEach(function(s) { s.classList.remove('active'); });
+    if (slides[index]) slides[index].classList.add('active');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      current = Math.min(current + 1, slides.length - 1);
+      show(current);
+    } else if (e.key === 'ArrowLeft') {
+      current = Math.max(current - 1, 0);
+      show(current);
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    var x = e.clientX;
+    if (x > window.innerWidth / 2) {
+      current = Math.min(current + 1, slides.length - 1);
+    } else {
+      current = Math.max(current - 1, 0);
+    }
+    show(current);
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>"
+`;

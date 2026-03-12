@@ -1,0 +1,241 @@
+# MRCF
+
+**The open standard for AI-structured work.**
+
+MRCF (`.mrcf`) is a plain-text document format that gives any LLM — OpenAI, Anthropic, Google — a clear, consistent structure to read, generate, and evolve your documents without custom prompt engineering.
+
+Think of it as: **Markdown is to text. Git is to code. MRCF is to AI-structured work.**
+
+---
+
+## Format at a glance
+
+```mrcf
+---
+title: My Project
+version: 1.0
+created: 2026-03-12
+author: Your Name
+status: draft
+---
+
+# VISION
+Build a knowledge platform for research teams.
+Goal: reduce duplication, enable AI collaboration.
+
+# CONTEXT
+Target: software teams of 5–20 people.
+Constraint: must remain human-readable without tooling.
+
+# STRUCTURE
+Three components: ingestion, storage, retrieval.
+Uses vector embeddings for semantic search.
+
+# PLAN
+Phase 1: Core data model (weeks 1–2)
+Phase 2: API layer (weeks 3–4)
+Phase 3: UI + export (weeks 5–6)
+
+# TASKS
+- [x] Define schema
+- [ ] Build ingestion pipeline
+- [ ] Write API docs
+```
+
+That's the whole format. Open it in any text editor. Commit it to Git. Let an LLM read it and immediately know what to generate next.
+
+---
+
+## The 5-section methodology
+
+| Section | Purpose |
+|---------|---------|
+| **VISION** | Why this exists. The problem, goal, and success criteria. |
+| **CONTEXT** | Who it's for. Audience, constraints, technical environment. |
+| **STRUCTURE** | How it works. Architecture, modules, design decisions. |
+| **PLAN** | How it gets done. Phases, milestones, roadmap. |
+| **TASKS** | What's next. Markdown checkboxes with optional owner + priority. |
+
+This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the format lets LLMs act on it automatically.
+
+---
+
+## Why not Markdown / DOCX / Notion?
+
+| Format | Human-readable | AI-parseable | Versionable (Git) | Open |
+|--------|:--------------:|:------------:|:-----------------:|:----:|
+| Markdown | ✅ | ⚠️ No structure | ✅ | ✅ |
+| DOCX (Word) | ⚠️ Needs app | ❌ Binary | ❌ | ❌ |
+| Notion | ✅ | ❌ Proprietary | ❌ | ❌ |
+| PDF | ✅ Read-only | ❌ | ❌ | ⚠️ |
+| **MRCF** | ✅ | ✅ Semantic | ✅ | ✅ MIT |
+
+The key difference: MRCF gives LLMs **semantic anchors**. When a model sees `# VISION` it knows what kind of content follows and what to generate for `# PLAN` or `# TASKS` without any additional instructions.
+
+---
+
+## Tool ecosystem
+
+```
+your-project.mrcf
+        ↓
+@mrcf/parser   ← parse, validate, resolve assets
+        ↓            ↓
+@mrcf/ai      @mrcf/renderer
+ (OpenAI /      (HTML, slides,
+  Anthropic /    static site,
+  Google)        ZIP export)
+        ↓            ↓
+    VS Code Extension
+ (edit · navigate · AI panel · tasks)
+```
+
+| Package | What it does |
+|---------|-------------|
+| [`@mrcf/parser`](parser/) | Parse `.mrcf` files into typed objects. Validate against 7 rules. Resolve asset references. |
+| [`@mrcf/ai`](src/ai/) | Generate PLAN from VISION. Generate TASKS from PLAN. Analyze consistency. Supports OpenAI, Anthropic, Google. |
+| [`@mrcf/renderer`](src/renderer/) | Render to HTML (responsive, dark mode, sticky TOC), presentation slides, multi-page static site, or ZIP bundle. |
+| [VS Code Extension](extension/) | Syntax highlighting, section folding, outline view, task explorer, AI panel, keyboard navigation. |
+
+---
+
+## Quick start
+
+### Option 1 — VS Code (recommended for developers)
+
+1. Install the **MRCF** extension from the VS Code Marketplace
+2. Create a new file: `my-project.mrcf`
+3. Start typing — syntax highlighting, folding, and the section outline activate automatically
+4. Open the MRCF sidebar to navigate sections, manage tasks, and run AI generation
+
+**Keybindings:**
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+Alt+Down` | Go to next section |
+| `Ctrl+Alt+Up` | Go to previous section |
+| `Ctrl+Alt+Space` | Toggle task checkbox |
+
+### Option 2 — npm packages (for developers / pipelines)
+
+```bash
+npm install @mrcf/parser @mrcf/renderer
+```
+
+```ts
+import { parse, validate } from '@mrcf/parser';
+import { renderHtml, exportDocument } from '@mrcf/renderer';
+
+const result = parse(source);
+if (result.ok) {
+    const html = renderHtml(result.document);
+    // or: await exportDocument(result.document, 'zip', { assetBasePath: './assets' })
+}
+```
+
+### Option 3 — Import from an existing document
+
+Convert a Word document, PDF, or Markdown file into `.mrcf` in one command:
+
+```bash
+# Clone the repo first
+git clone https://github.com/playerelevenstudios/mrcf.git && cd mrcf && npm install
+
+# Import from DOCX (Word)
+npm run import -- my-document.docx output.mrcf
+
+# Import from PDF
+npm run import -- report.pdf output.mrcf
+
+# Import from Markdown (Notion export, README, etc.)
+npm run import -- notes.md output.mrcf
+```
+
+The importer maps your existing headings to MRCF sections automatically and warns you about anything it couldn't map.
+
+---
+
+## Export formats
+
+From a `.mrcf` file you can generate:
+
+| Format | What you get |
+|--------|-------------|
+| **HTML** | Single self-contained page — responsive layout, dark mode, sticky TOC, scroll-spy. All local images are base64-embedded. |
+| **Slides** | HTML5 presentation deck — one slide per section, keyboard navigation. |
+| **Static site** | Multi-page documentation site with global navigation, search index, and per-section pages. |
+| **ZIP** | Everything above packaged together with your asset files. Ready to deploy or send. |
+| **PDF** | Via `@media print` CSS on the HTML output, or a headless browser (Puppeteer) for server-side generation. |
+
+```bash
+# Smoke test: parse → validate → render → export all formats
+npm run smoke -- example-full.mrcf
+```
+
+---
+
+## Who is it for?
+
+**Developers and architects** — Write `.mrcf` files in VS Code. Push to GitHub for version history and team collaboration. Use `@mrcf/parser` and `@mrcf/renderer` programmatically in your own tooling.
+
+**Technical writers and project managers** — The methodology works for any structured document. Import your existing Word/Markdown content, restructure with AI assistance, export to HTML or a static site.
+
+**LLM pipelines and agents** — MRCF is machine-readable by design. Parse a document, extract sections, feed to any LLM provider, inject the generated content back. No custom training or complex prompting required.
+
+**Non-technical users** *(roadmap)* — A web-based editor that lets anyone create and edit `.mrcf` documents in the browser — no VS Code, no terminal, no Git required. On the roadmap. See below.
+
+---
+
+## Roadmap
+
+- [ ] **Web editor** — Browser-based MRCF editor (think Notion-style). Create, edit, and export `.mrcf` files without VS Code or a terminal. The primary path for non-technical users.
+- [ ] **ChatGPT-style interface** — Describe your project in conversation; the AI builds the structured `.mrcf` with you iteratively. MRCF's semantic structure makes this especially effective.
+- [ ] **GitHub Action** — Auto-render `.mrcf` → HTML on every push, deploy to GitHub Pages. Non-technical readers see a formatted page; collaborators edit the plain-text source.
+- [ ] **Obsidian plugin** — Edit `.mrcf` files inside Obsidian with full section navigation and AI panel.
+- [ ] **npm publish** — Publish `@mrcf/parser` and `@mrcf/renderer` as open-source npm packages.
+- [ ] **VS Code Marketplace** — Publish the extension publicly.
+- [ ] **Project template library** — Starter templates for software projects, research papers, books, business plans.
+
+---
+
+## Repository structure
+
+```
+mrcf/
+├── parser/          @mrcf/parser — parse, validate, types
+├── src/
+│   ├── ai/          @mrcf/ai — LLM providers, generation, diff
+│   └── renderer/    @mrcf/renderer — HTML, slides, site, export
+├── extension/       VS Code extension
+├── scripts/
+│   ├── smoke.ts     End-to-end smoke test
+│   └── import.ts    DOCX/PDF/Markdown → .mrcf converter
+├── docs/
+│   ├── mrcf-spec.md Full format specification
+│   └── ...
+├── example.mrcf     Minimal example
+└── example-full.mrcf Full demo document
+```
+
+---
+
+## Contributing
+
+1. Read the [format specification](docs/mrcf-spec.md) to understand the `.mrcf` standard
+2. Each package is independently testable:
+   ```bash
+   npm run test:parser     # parser tests (31)
+   npm run test:ai         # AI package tests (87)
+   npm run test:renderer   # renderer tests (63)
+   npm run test:all        # everything
+   ```
+3. File bugs and feature requests as GitHub Issues
+4. Pull requests welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for details
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+The `.mrcf` format specification ([docs/mrcf-spec.md](docs/mrcf-spec.md)) is published as an open standard. Anyone can implement a parser, editor, or renderer without restriction.

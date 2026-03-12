@@ -1,0 +1,25 @@
+---
+title: Demo Project
+version: 1.0
+created: 2026-03-12
+author: Team
+status: draft
+---
+
+# VISION
+Build a small KDOC demo.
+
+# CONTEXT
+Used for integration testing.
+
+# STRUCTURE
+Parser, AI, renderer, extension.
+
+# PLAN
+Phase 1: Validate.
+Phase 2: Render.
+
+# TASKS
+- [ ] create demo file
+- [ ] run parser
+- [ ] render html

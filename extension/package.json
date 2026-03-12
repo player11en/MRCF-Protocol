@@ -1,0 +1,134 @@
+{
+  "name": "mrcf",
+  "displayName": "MRCF",
+  "description": "Editor support for .mrcf structured documents (VISION, CONTEXT, STRUCTURE, PLAN, TASKS)",
+  "version": "0.1.0",
+  "publisher": "mrcf",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:mrcf",
+    "onView:mrcf.ai"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "mrcf",
+        "aliases": [
+          "MRCF",
+          "mrcf"
+        ],
+        "extensions": [
+          ".mrcf"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mrcf",
+        "scopeName": "source.mrcf",
+        "path": "./syntaxes/mrcf.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "mrcf.revealSection",
+        "title": "Reveal Section in Editor"
+      },
+      {
+        "command": "mrcf.goToNextSection",
+        "title": "Go to Next Section"
+      },
+      {
+        "command": "mrcf.goToPreviousSection",
+        "title": "Go to Previous Section"
+      },
+      {
+        "command": "mrcf.goToSection",
+        "title": "Go to Section…"
+      },
+      {
+        "command": "mrcf.toggleTask",
+        "title": "Toggle MRCF Task"
+      },
+      {
+        "command": "mrcf.tasks.filterAll",
+        "title": "MRCF Tasks: Show All"
+      },
+      {
+        "command": "mrcf.tasks.filterOpen",
+        "title": "MRCF Tasks: Show Open"
+      },
+      {
+        "command": "mrcf.tasks.filterDone",
+        "title": "MRCF Tasks: Show Completed"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "mrcf.goToNextSection",
+        "key": "ctrl+alt+down",
+        "mac": "ctrl+alt+down",
+        "when": "editorLangId == mrcf"
+      },
+      {
+        "command": "mrcf.goToPreviousSection",
+        "key": "ctrl+alt+up",
+        "mac": "ctrl+alt+up",
+        "when": "editorLangId == mrcf"
+      },
+      {
+        "command": "mrcf.toggleTask",
+        "key": "ctrl+alt+space",
+        "mac": "ctrl+alt+space",
+        "when": "editorLangId == mrcf"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mrcf",
+          "title": "MRCF",
+          "icon": "resources/mrcf.svg"
+        }
+      ]
+    },
+    "views": {
+      "mrcf": [
+        {
+          "id": "mrcf.sectionList",
+          "name": "Sections"
+        },
+        {
+          "id": "mrcf.tasks",
+          "name": "Tasks"
+        },
+        {
+          "id": "mrcf.ai",
+          "name": "AI"
+        }
+      ]
+    },
+    "configuration": {}
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@mrcf/ai": "*"
+  }
+}
