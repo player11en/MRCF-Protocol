@@ -2,9 +2,9 @@
 
 **The AI-native document standard for structured work.**
 
-MRCF (`.mrcf`) is a plain-text document format that gives any LLM-based agent a clear, consistent structure to read, generate, and evolve your project without custom prompt engineering.
+MRCF (`.mrcf`) is a plain-text document format that serves as the **single source of truth** for projects involving both humans and AI agents. It provides a clear, consistent structure to read, generate, and evolve your project without custom prompt engineering.
 
-Think of it as: **Markdown is to text. Git is to code. MRCF is to AI agents.**
+Think of it as: **Markdown is to text. Git is to code. MRCF is an interface for AI agents.**
 
 ---
 
@@ -78,15 +78,46 @@ In every case, the `.mrcf` document remains the **shared source of truth**. You 
 
 ## Why not Markdown / DOCX / Notion?
 
-| Format | Human-readable | AI-parseable | Versionable (Git) | Open |
-|--------|:--------------:|:------------:|:-----------------:|:----:|
-| Markdown | ✅ | ⚠️ No structure | ✅ | ✅ |
-| DOCX (Word) | ⚠️ Needs app | ❌ Binary | ❌ | ❌ |
-| Notion | ✅ | ❌ Proprietary | ❌ | ❌ |
-| PDF | ✅ Read-only | ❌ | ❌ | ⚠️ |
-| **MRCF** | ✅ | ✅ Semantic | ✅ | ✅ MIT |
+| Format | Human-readable | AI-parseable | Versionable (Git) | Open | Role |
+|--------|:--------------:|:------------:|:-----------------:|:----:|------|
+| Markdown | ✅ | ⚠️ No structure | ✅ | ✅ | General Text |
+| DOCX (Word) | ⚠️ Needs app | ❌ Binary | ❌ | ❌ | Office Docs |
+| Notion | ✅ | ❌ Proprietary | ❌ | ❌ | Team Wiki |
+| PDF | ✅ | ❌ | ❌ | ⚠️ | **Final Output** |
+| **MRCF** | ✅ | ✅ Semantic | ✅ | ✅ MIT | **AI Workflow** |
 
-The key difference: MRCF gives LLMs **semantic anchors**. When a model sees `# VISION` it knows what kind of content follows and what to generate for `# PLAN` or `# TASKS` without any additional instructions.
+### The "Single Source of Truth" Philosophy
+Unlike a PDF, which is a finalized "screenshot" of information, MRCF is a living document. It provides the **semantic anchors** (like `# VISION` or `# PLAN`) that allow an AI to understand context instantly. You maintain the MRCF source; the AI generates the PDF, HTML, or code from it.
+
+---
+
+## Asset Handling (Images & Media)
+
+MRCF remains versionable and lightweight because it is **plain text**. Binary data like images or datasets are **not embedded directly**. Instead, they are referenced using standard Markdown syntax:
+
+```text
+# STRUCTURE
+
+## Project Cover
+![Ebook Cover](assets/cover.png)
+
+## Data Analysis
+![Sales Forecast Chart](assets/charts/sales_2026.svg)
+```
+
+The `@mrcf/parser` automatically resolves these local paths, allowing the renderer to embed them into final HTML exports or presentation slides.
+
+---
+
+## Human-AI Workflow
+
+MRCF is designed for an iterative loop where humans set the strategy and AI handles the execution:
+
+1. **Human** writes the `# VISION` and `# CONTEXT` in a `.mrcf` file.
+2. **AI** reads the vision and generates the `# PLAN` and `# TASKS`.
+3. **Human** reviews the plan, adds `# ASSETS`, and checks off initial tasks.
+4. **AI** executes tasks (drafting chapters, writing code) and updates the file.
+5. **Human** uses `@mrcf/renderer` to export a finalized **PDF** or **Website**.
 
 ---
 
