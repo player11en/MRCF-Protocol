@@ -1,10 +1,10 @@
 # MRCF
 
-**The open standard for AI-structured work.**
+**The AI-native document standard for structured work.**
 
-MRCF (`.mrcf`) is a plain-text document format that gives any LLM — OpenAI, Anthropic, Google — a clear, consistent structure to read, generate, and evolve your documents without custom prompt engineering.
+MRCF (`.mrcf`) is a plain-text document format that gives any LLM-based agent a clear, consistent structure to read, generate, and evolve your project without custom prompt engineering.
 
-Think of it as: **Markdown is to text. Git is to code. MRCF is to AI-structured work.**
+Think of it as: **Markdown is to text. Git is to code. MRCF is to AI agents.**
 
 ---
 
@@ -57,6 +57,22 @@ That's the whole format. Open it in any text editor. Commit it to Git. Let an LL
 | **TASKS** | What's next. Markdown checkboxes with optional owner + priority. |
 
 This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the format lets LLMs act on it automatically.
+
+---
+
+## Use Cases
+
+Because MRCF provides a structured semantic model for work, it is inherently domain-independent. An AI agent can use this single source of truth to manage projects across diverse fields:
+
+| Field | Example Workflow |
+|-------|------------------|
+| **Book & Content Creation** | Define audience, length, and chapter structure. AI agents can generate outlines, draft chapters, and optimize phrasing. |
+| **Software Development** | Describe stack, architecture, and feature roadmap. Code agents can scaffold the app, write DB schemas, and implement API endpoints. |
+| **Project Planning** | Outline product launches, conference organization, or research. The AI can manage schedules, analyze risks, and track tasks. |
+| **Learning & Knowledge** | Define a learning goal. The LLM can generate reading material, create exercises, and test your progress piece by piece. |
+| **Concept Engineering** | Document game mechanics, story worlds, or product ideas. The LLM can generate variations, spot logical gaps, and compare concepts. |
+
+In every case, the `.mrcf` document remains the **shared source of truth**. You outline the vision; the AI works on the tasks.
 
 ---
 
