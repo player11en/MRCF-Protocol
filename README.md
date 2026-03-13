@@ -86,6 +86,21 @@ In every case, the `.mrcf` document remains the **shared source of truth**. You 
 | PDF | ✅ | ❌ | ❌ | ⚠️ | **Final Output** |
 | **MRCF** | ✅ | ✅ Semantic | ✅ | ✅ MIT | **AI Workflow** |
 
+---
+
+## MRCF vs. The Ecosystem
+
+How MRCF-Protocol compares to other AI-driven specification standards:
+
+| Feature | **MRCF** | **BMAD** | **GitHub Spec Kit** | **OpenSpec** |
+| :--- | :--- | :--- | :--- | :--- |
+| **Core Goal** | **Project Memory** | Agile Tickets | AI-CLI Tooling | PRD Standard |
+| **AI Memory** | **Semantic Sections** | File Sharding | CLI Prompts | Lifecycle Archiving |
+| **Standardized View**| **Yes (Renderer)** | No (Raw MD) | No (Raw MD) | No (Raw MD) |
+| **Source of Truth** | Single `.mrcf` | Many `.md` files | Many `.md` files | Multi-phase files |
+
+---
+
 ### The "Single Source of Truth" Philosophy
 Unlike a PDF, which is a finalized "screenshot" of information, MRCF is a living document. It provides the **semantic anchors** (like `# VISION` or `# PLAN`) that allow an AI to understand context instantly. You maintain the MRCF source; the AI generates the PDF, HTML, or code from it.
 
