@@ -1,0 +1,70 @@
+---
+title: Sample Nonfiction Book
+version: 0.1
+created: 2026-03-13
+author: Your Name
+status: draft
+---
+
+# VISION
+Write a concise nonfiction book that teaches software teams how to work effectively with AI tools.
+
+## Problem
+Many teams experiment with AI in an ad-hoc way, leading to inconsistent quality and unclear workflows.
+
+## Goal
+Provide a practical, opinionated guide with patterns, anti-patterns, and real examples.
+
+## Success Criteria
+- 8–12 chapters, each with a clear takeaway.
+- Concrete patterns that readers can apply in their next sprint.
+- Companion `.mrcf` template for documenting AI workflows.
+
+# CONTEXT
+
+## Target Audience
+- Engineering managers
+- Tech leads
+- Senior developers
+
+## Constraints
+- Book length: ~150–200 pages.
+- Focus on practice, not theory.
+
+# STRUCTURE
+
+## Working Title
+“Working with AI: A Practical Guide for Software Teams”
+
+## Chapter Ideas
+- Introduction: Why AI needs structure
+- Documenting vision and context
+- Designing AI-assisted workflows
+- Patterns for code generation
+- Patterns for documentation and specs
+- Risks, failure modes, and guardrails
+
+## DECISIONS
+- Focus on real-world examples from software projects, not generic business use cases.
+- Use MRCF throughout as the running example format.
+
+# PLAN
+
+## Phase 1 — Outline
+- Finalize chapter list and high-level section structure.
+
+## Phase 2 — Draft
+- Write rough drafts for all chapters.
+
+## Phase 3 — Revise
+- Editing, examples, diagrams, and index.
+
+# TASKS
+
+- [ ] Brainstorm 20+ chapter ideas
+- [ ] Cut down to 8–12 and group into parts
+- [ ] Draft chapter summaries (1 paragraph each)
+- [ ] Define 3–5 core patterns per part
+- [ ] Draft full chapters
+- [ ] Review with 2–3 beta readers
+

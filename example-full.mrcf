@@ -92,6 +92,12 @@ The platform consists of four loosely coupled packages:
 extension/   ← VS Code UI, AI panel, task management
 ```
 
+## DECISIONS
+
+- Use a single `.mrcf` file as the project’s source of truth instead of many loosely related markdown files.
+- Keep the parser simple and dependency-free so third parties can reimplement it easily.
+- Rely on open, plain-text tooling (Git, editors, static HTML) rather than proprietary formats.
+
 ## Package: @kdoc/parser
 
 ### Responsibilities

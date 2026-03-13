@@ -274,6 +274,8 @@ From a `.mrcf` file you can generate:
 npm run smoke -- example-full.mrcf
 ```
 
+Validation rules are defined in detail in `docs/mrcf-spec.md` under “Validation Rules” (codes `V-001`–`V-007`).
+
 ---
 
 ## Who is it for?
@@ -313,10 +315,13 @@ mrcf/
 │   ├── smoke.ts     End-to-end smoke test
 │   └── import.ts    DOCX/PDF/Markdown → .mrcf converter
 ├── docs/
-│   ├── mrcf-spec.md Full format specification
+│   ├── mrcf-spec.md       Full format specification
+│   ├── writeback-spec.md  Writeback protocol (permissions, proposals, HISTORY)
 │   └── ...
-├── example.mrcf     Minimal example
-└── example-full.mrcf Full demo document
+├── example.mrcf           Minimal example
+├── example-full.mrcf      Full demo document
+├── example-writeback.mrcf Writeback demo document
+└── templates/             Starter templates (software project, book outline)
 ```
 
 ---
