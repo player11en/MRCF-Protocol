@@ -1,6 +1,6 @@
-# MRCF
+# MRCF-Protocol
 
-**The AI-native document standard for structured work.**
+**Machine-Readable Context Format — The AI-native document standard for structured work.**
 
 MRCF (`.mrcf`) is a plain-text document format that serves as the **single source of truth** for projects involving both humans and AI agents. It provides a clear, consistent structure to read, generate, and evolve your project without custom prompt engineering.
 

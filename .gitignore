@@ -19,6 +19,7 @@ example-output.html
 example-full-output.html
 example-full-slides.html
 example-full-site/
+test-artifacts/
 
 # ── Environment / secrets ──────────────────────────────────────────────────────
 .env
