@@ -3,6 +3,7 @@ import type {
   MrcfSubsection,
   MrcfTask,
   MrcfAssetReference,
+  MrcfProposal,
 } from '../types/index';
 import { STANDARD_SECTIONS } from '../types/index';
 
@@ -46,6 +47,13 @@ function parseTasks(lines: string[], baseLineNumber: number): MrcfTask[] {
         if (key === 'owner') current.owner = value;
         if (key === 'priority' && (value === 'low' || value === 'medium' || value === 'high')) {
           current.priority = value;
+        }
+        if (key === 'id') current.id = value;
+        if (key === 'depends') {
+          current.dependsOn = value
+            .split(',')
+            .map((v) => v.trim())
+            .filter(Boolean);
         }
         continue;
       }
@@ -142,6 +150,13 @@ function parseSubsections(
 const SECTION_HEADER_RE = /^# ([A-Z][A-Z0-9_ ]*)$/;
 const STANDARD_SET = new Set<string>(STANDARD_SECTIONS as unknown as string[]);
 
+// Lock comment: <!-- lock: actor | 2026-03-13T14:22:00Z -->
+const LOCK_RE = /^<!--\s*lock:\s*([^|]+)\|\s*([^-]+?)\s*-->$/i;
+
+// Proposal block start: <!-- proposal: actor | timestamp | confidence:high -->
+const PROPOSAL_START_RE = /^<!--\s*proposal:\s*([^|]+)\|\s*([^|]+)\|\s*confidence:(low|medium|high)\s*$/i;
+const PROPOSAL_END_RE = /^-->$/;
+
 export interface SectionParseResult {
   sections: MrcfSection[];
   allAssets: MrcfAssetReference[];
@@ -172,13 +187,74 @@ export function parseSections(
     if (!currentSection) return;
 
     const { name, startLine, bodyLines } = currentSection;
-    const content = bodyLines.join('\n').trim();
+
+    // Detect lock (first non-blank line)
+    let lock: MrcfSection['lock'] | undefined;
+    let contentLines = [...bodyLines];
+    for (let i = 0; i < contentLines.length; i++) {
+      const line = contentLines[i];
+      if (line.trim() === '') continue;
+      const m = line.match(LOCK_RE);
+      if (m) {
+        lock = {
+          actor: m[1].trim(),
+          timestamp: m[2].trim(),
+        };
+        // Keep the raw lock line in content for now (backwards compatible)
+      }
+      break;
+    }
+
+    const content = contentLines.join('\n').trim();
     const isStandard = STANDARD_SET.has(name);
-    const tasks = name === 'TASKS' ? parseTasks(bodyLines, startLine + 1) : [];
+    const tasks = name === 'TASKS' ? parseTasks(contentLines, startLine + 1) : [];
     const assets = parseAssets(content, startLine + 1);
-    const subsections = parseSubsections(bodyLines, startLine + 1);
+    const subsections = parseSubsections(contentLines, startLine + 1);
 
     allAssets.push(...assets);
+
+    // Extract proposal blocks
+    const proposals: MrcfProposal[] = [];
+    const proposalIdPrefix = `${name}-`;
+    let proposalCounter = 0;
+
+    const linesForProposals = content.split('\n');
+    let i = 0;
+    while (i < linesForProposals.length) {
+      const line = linesForProposals[i];
+      const startMatch = line.match(PROPOSAL_START_RE);
+      if (startMatch) {
+        const actor = startMatch[1].trim();
+        const timestamp = startMatch[2].trim();
+        const confidence = startMatch[3].toLowerCase() as 'low' | 'medium' | 'high';
+        const body: string[] = [];
+        let reason: string | undefined;
+        i++;
+        while (i < linesForProposals.length) {
+          const inner = linesForProposals[i];
+          if (PROPOSAL_END_RE.test(inner.trim())) {
+            break;
+          }
+          if (inner.trim().toLowerCase().startsWith('reason:')) {
+            reason = inner.trim().slice('reason:'.length).trim();
+          } else {
+            body.push(inner);
+          }
+          i++;
+        }
+        const proposal: MrcfProposal = {
+          id: `${proposalIdPrefix}${++proposalCounter}`,
+          sectionName: name,
+          actor,
+          timestamp,
+          confidence,
+          reason,
+          content: body.join('\n').trim(),
+        };
+        proposals.push(proposal);
+      }
+      i++;
+    }
 
     sections.push({
       name,
@@ -188,6 +264,8 @@ export function parseSections(
       tasks,
       assets,
       lineNumber: startLine,
+      lock,
+      proposals: proposals.length > 0 ? proposals : undefined,
     });
   };
 

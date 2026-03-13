@@ -1,4 +1,4 @@
-import type { MrcfMetadata, ParseError } from '../types/index';
+import type { MrcfMetadata, ParseError, SectionPermission } from '../types/index';
 import { REQUIRED_METADATA_FIELDS } from '../types/index';
 
 export interface MetadataParseResult {
@@ -138,8 +138,49 @@ export function parseMetadata(lines: string[]): MetadataParseResult {
   }
   if (raw['license']) metadata.license = String(raw['license']);
 
+  // Section permissions (writeback protocol)
+  // sections:
+  //   - VISION:human-only
+  //   - PLAN:ai-primary
+  const permissionsRaw = raw['sections'];
+  if (Array.isArray(permissionsRaw)) {
+    const map: Record<string, SectionPermission> = {};
+    for (const entry of permissionsRaw as unknown[]) {
+      const text = String(entry).trim();
+      if (!text) continue;
+      const [namePart, permPart] = text.split(':');
+      if (!namePart || !permPart) continue;
+      const name = namePart.trim().toUpperCase();
+      const perm = permPart.trim() as SectionPermission;
+      if (perm === 'human-only' || perm === 'ai-assisted' || perm === 'ai-primary') {
+        map[name] = perm;
+      }
+    }
+    if (Object.keys(map).length > 0) {
+      metadata.sectionPermissions = map;
+    }
+  }
+
+  if (raw['defaultPermission']) {
+    const dp = String(raw['defaultPermission']).trim() as SectionPermission;
+    if (dp === 'human-only' || dp === 'ai-assisted' || dp === 'ai-primary') {
+      metadata.defaultPermission = dp;
+    }
+  }
+
   // Carry over any other unknown keys
-  const knownKeys = new Set(['title', 'version', 'created', 'author', 'updated', 'tags', 'status', 'license']);
+  const knownKeys = new Set([
+    'title',
+    'version',
+    'created',
+    'author',
+    'updated',
+    'tags',
+    'status',
+    'license',
+    'sections',
+    'defaultPermission',
+  ]);
   for (const [k, v] of Object.entries(raw)) {
     if (!knownKeys.has(k)) {
       metadata[k] = v;

@@ -6,6 +6,8 @@
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
+export type SectionPermission = 'human-only' | 'ai-assisted' | 'ai-primary';
+
 export interface MrcfMetadata {
   /** Document title (required) */
   title: string;
@@ -21,6 +23,16 @@ export interface MrcfMetadata {
   tags?: string[];
   /** Document lifecycle status (optional) */
   status?: 'draft' | 'active' | 'archived';
+  /**
+   * Optional per-section permission map used by the writeback protocol.
+   * Keys are section names (e.g. "VISION", "PLAN").
+   */
+  sectionPermissions?: Record<string, SectionPermission>;
+  /**
+   * Default permission applied to sections that do not have an explicit
+   * entry in `sectionPermissions`.
+   */
+  defaultPermission?: SectionPermission;
   /** License identifier (optional) */
   license?: string;
   /** Any additional custom metadata fields */
@@ -38,6 +50,10 @@ export interface MrcfTask {
   owner?: string;
   /** Optional priority level */
   priority?: 'low' | 'medium' | 'high';
+  /** Optional stable task identifier */
+  id?: string;
+  /** Optional list of task IDs this task depends on */
+  dependsOn?: string[];
   /** Line number in the source file (1-based) */
   lineNumber?: number;
 }
@@ -76,6 +92,19 @@ export interface MrcfSection {
   assets: MrcfAssetReference[];
   /** Line number where the section header was found (1-based) */
   lineNumber?: number;
+  /**
+   * Optional lock information when the section is currently being edited
+   * by a particular actor (human or AI).
+   */
+  lock?: {
+    actor: string;
+    timestamp: string;
+  };
+  /**
+   * Structured representation of any proposal blocks found in the section
+   * content (writeback protocol).
+   */
+  proposals?: MrcfProposal[];
 }
 
 export interface MrcfSubsection {
@@ -89,6 +118,23 @@ export interface MrcfSubsection {
   subsections: MrcfSubsection[];
   /** Line number (1-based) */
   lineNumber?: number;
+}
+
+export interface MrcfProposal {
+  /** Opaque, stable identifier for this proposal */
+  id: string;
+  /** Name of the section the proposal belongs to */
+  sectionName: string;
+  /** Actor that created the proposal, e.g. "ai:claude" or "human:alice" */
+  actor: string;
+  /** ISO-8601 timestamp when the proposal was created */
+  timestamp: string;
+  /** Optional confidence level provided by the agent */
+  confidence?: 'low' | 'medium' | 'high';
+  /** Optional free-form reason or justification */
+  reason?: string;
+  /** Raw proposed markdown content */
+  content: string;
 }
 
 // ─── Document ─────────────────────────────────────────────────────────────────

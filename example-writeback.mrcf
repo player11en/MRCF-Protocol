@@ -1,0 +1,49 @@
+---
+title: Writeback Demo
+version: 0.1
+created: 2026-03-13
+author: Team
+status: draft
+sections:
+  - VISION:human-only
+  - CONTEXT:human-only
+  - STRUCTURE:ai-assisted
+  - PLAN:ai-primary
+  - TASKS:ai-primary
+defaultPermission:ai-assisted
+---
+
+# VISION
+Keep this section human-written only.
+
+# CONTEXT
+Simple demo to illustrate the writeback protocol (permissions, proposals, HISTORY, task dependencies).
+
+# STRUCTURE
+<!-- proposal: ai:demo-model | 2026-03-13T14:30:00Z | confidence:high
+Suggested structure:
+- Parser
+- AI integration
+- Renderer
+reason: initial AI suggestion for STRUCTURE
+-->
+
+# PLAN
+Phase 1: Try the smoke test.
+Phase 2: Try the review command.
+
+# TASKS
+- [ ] run smoke test
+  id: T-001
+  owner: dev1
+  priority: medium
+- [ ] inspect proposals with review
+  id: T-002
+  owner: dev1
+  priority: high
+  depends: T-001
+
+# HISTORY
+2026-03-13 | human | created writeback demo document
+2026-03-13 | ai:demo-model | proposed STRUCTURE content
+

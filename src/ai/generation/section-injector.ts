@@ -5,6 +5,7 @@
 
 import { MrcfDocument, MrcfSection, GenerationResult } from '../types';
 import type { MrcfSubsection } from '@mrcf/parser';
+import type { SectionPermission } from '@mrcf/parser';
 
 /**
  * Injection mode determines how generated content is merged.
@@ -27,13 +28,33 @@ export function injectSection(
     result: GenerationResult,
     mode: InjectionMode = 'replace'
 ): MrcfDocument {
+    // Determine effective permission for this section
+    const sectionName = result.sectionName.toUpperCase();
+    const meta: any = document.metadata as any;
+    const perms: Record<string, SectionPermission> | undefined = meta.sectionPermissions;
+    const defaultPerm: SectionPermission | undefined = meta.defaultPermission;
+    const effectivePerm: SectionPermission =
+        (perms && perms[sectionName]) ||
+        defaultPerm ||
+        'ai-assisted';
+
+    if (effectivePerm === 'human-only') {
+        // Do not modify the document at all
+        return {
+            metadata: { ...document.metadata },
+            sections: [...document.sections],
+            assets: [...document.assets],
+            sectionIndex: new Map(document.sectionIndex),
+        };
+    }
+
     const existingIndex = document.sections.findIndex(
-        (s) => s.name.toUpperCase() === result.sectionName.toUpperCase()
+        (s) => s.name.toUpperCase() === sectionName
     );
 
     const newSection: MrcfSection = {
         name: result.sectionName,
-        isStandard: ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'].includes(result.sectionName.toUpperCase()),
+        isStandard: ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'].includes(sectionName),
         content: result.content,
         subsections: [],
         tasks: [],
@@ -41,15 +62,21 @@ export function injectSection(
     };
 
     // Clone sections array
-    const sections = document.sections.map((s) => ({ ...s, subsections: [...s.subsections] }));
+    const sections = document.sections.map((s) => ({ ...s, subsections: [...s.subsections], proposals: s.proposals ? [...s.proposals] : undefined }));
 
     if (existingIndex === -1) {
         // Section doesn't exist — insert in canonical order
         const canonicalOrder = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'];
-        const targetIdx = canonicalOrder.indexOf(result.sectionName.toUpperCase());
+        const targetIdx = canonicalOrder.indexOf(sectionName);
 
         if (targetIdx === -1) {
             // Custom section: append at end
+            if (effectivePerm === 'ai-assisted') {
+                newSection.content = createProposalBlock(result);
+                newSection.proposals = [
+                    createProposalMeta(result, newSection.name, 1),
+                ];
+            }
             sections.push(newSection);
         } else {
             // Find the right position
@@ -61,40 +88,66 @@ export function injectSection(
                     break;
                 }
             }
+            if (effectivePerm === 'ai-assisted') {
+                newSection.content = createProposalBlock(result);
+                newSection.proposals = [
+                    createProposalMeta(result, newSection.name, 1),
+                ];
+            }
             sections.splice(insertAt, 0, newSection);
         }
     } else {
         // Section exists
-        switch (mode) {
-            case 'replace':
-                sections[existingIndex] = {
-                    ...sections[existingIndex],
-                    content: result.content,
-                    subsections: [],
-                };
-                break;
+        const existing = sections[existingIndex];
+        if (effectivePerm === 'ai-assisted') {
+            // Append a proposal block rather than overwriting content
+            const nextId = (existing.proposals?.length ?? 0) + 1;
+            const proposalText = createProposalBlock(result);
+            const sep = existing.content.trim().length > 0 ? '\n\n' : '';
+            sections[existingIndex] = {
+                ...existing,
+                content: existing.content + sep + proposalText,
+                proposals: [
+                    ...(existing.proposals ?? []),
+                    createProposalMeta(result, existing.name, nextId),
+                ],
+            };
+        } else {
+            // ai-primary – write directly according to mode
+            switch (mode) {
+                case 'replace':
+                    sections[existingIndex] = {
+                        ...existing,
+                        content: result.content,
+                        subsections: [],
+                    };
+                    break;
 
-            case 'append':
-                sections[existingIndex] = {
-                    ...sections[existingIndex],
-                    content: sections[existingIndex].content.trim()
-                        ? sections[existingIndex].content + '\n\n' + result.content
-                        : result.content,
-                };
-                break;
+                case 'append':
+                    sections[existingIndex] = {
+                        ...existing,
+                        content: existing.content.trim()
+                            ? existing.content + '\n\n' + result.content
+                            : result.content,
+                    };
+                    break;
 
-            case 'create':
-                // Do nothing — section already exists
-                break;
+                case 'create':
+                    // Do nothing — section already exists
+                    break;
+            }
         }
     }
 
-    return {
+    const updated = {
         metadata: { ...document.metadata },
         sections,
         assets: [...document.assets],
-        sectionIndex: new Map(document.sectionIndex)
+        sectionIndex: new Map<string, MrcfSection>(sections.map((s) => [s.name, s])),
     };
+
+    // Append HISTORY entry when AI touched the document
+    return appendHistoryEntry(updated, result, effectivePerm, mode);
 }
 
 /**
@@ -117,6 +170,16 @@ export function serializeDocument(document: MrcfDocument): string {
         }
     }
     if (document.metadata.status) parts.push(`status: ${document.metadata.status}`);
+    if ((document.metadata as any).defaultPermission) {
+        parts.push(`defaultPermission: ${(document.metadata as any).defaultPermission}`);
+    }
+    if ((document.metadata as any).sectionPermissions) {
+        const perms = (document.metadata as any).sectionPermissions as Record<string, SectionPermission>;
+        parts.push('sections:');
+        for (const [name, perm] of Object.entries(perms)) {
+            parts.push(`  - ${name}:${perm}`);
+        }
+    }
     parts.push('---');
     parts.push('');
 
@@ -161,4 +224,76 @@ function serializeSubsection(subsection: MrcfSubsection, level: number): string 
     }
 
     return parts.join('\n');
+}
+
+function createProposalBlock(result: GenerationResult): string {
+    const actor = `ai:${result.model}`;
+    const timestamp = new Date().toISOString();
+    const confidence = 'high';
+    const lines: string[] = [];
+    lines.push(`<!-- proposal: ${actor} | ${timestamp} | confidence:${confidence}`);
+    if (result.content.trim()) {
+        lines.push(result.content.trim());
+    }
+    lines.push(`reason: generated by ${result.model}`);
+    lines.push('-->');
+    return lines.join('\n');
+}
+
+function createProposalMeta(
+    result: GenerationResult,
+    sectionName: string,
+    counter: number,
+) {
+    const actor = `ai:${result.model}`;
+    const timestamp = new Date().toISOString();
+    return {
+        id: `${sectionName}-${counter}`,
+        sectionName,
+        actor,
+        timestamp,
+        confidence: 'high' as const,
+        reason: `generated by ${result.model}`,
+        content: result.content,
+    };
+}
+
+function appendHistoryEntry(
+    document: MrcfDocument,
+    result: GenerationResult,
+    perm: SectionPermission,
+    mode: InjectionMode,
+): MrcfDocument {
+    const date = new Date().toISOString().slice(0, 10);
+    const actor = `ai:${result.model}`;
+    const summary =
+        perm === 'ai-assisted'
+            ? `proposed ${result.sectionName} (${mode})`
+            : `updated ${result.sectionName} (${mode}, ${perm})`;
+
+    let history = document.sections.find((s) => s.name.toUpperCase() === 'HISTORY');
+    if (!history) {
+        history = {
+            name: 'HISTORY',
+            isStandard: false,
+            content: '',
+            subsections: [],
+            tasks: [],
+            assets: [],
+        };
+        document.sections.push(history);
+        document.sectionIndex.set('HISTORY', history);
+    }
+
+    const line = `${date} | ${actor} | ${summary}`;
+    history.content = history.content.trim()
+        ? `${history.content.trim()}\n${line}`
+        : line;
+
+    return {
+        metadata: { ...document.metadata },
+        sections: [...document.sections],
+        assets: [...document.assets],
+        sectionIndex: new Map<string, MrcfSection>(document.sections.map((s) => [s.name, s])),
+    };
 }

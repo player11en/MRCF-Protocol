@@ -18,6 +18,7 @@
     "test:renderer": "jest --testPathPattern=src/renderer",
     "test:all": "npm run test:parser && npm test",
     "smoke": "ts-node --project tsconfig.json scripts/smoke.ts",
+    "review": "ts-node --project tsconfig.json scripts/review.ts",
     "import": "ts-node --project tsconfig.json scripts/import.ts",
     "lint": "tsc --noEmit"
   },

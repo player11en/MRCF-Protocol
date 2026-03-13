@@ -197,6 +197,15 @@ We chose TypeScript for the parser.
 
 Custom sections are included in `sections[]` with `isStandard: false`.
 
+### 8.1 Recommended custom sections
+
+The core MRCF standard intentionally keeps only five required sections to stay simple. For long‑running, collaborative projects, the following **recommended but optional** custom sections are especially useful:
+
+- `# DECISIONS` or `# ADR` — capture key architecture/product decisions and rejected alternatives.
+- `# HISTORY` or `# STATUS` — short, human‑written milestones that explain how the project has evolved over time.
+
+These sections remain custom (non‑required) and are treated like any other custom section by the parser; tools are free to provide specialized views for them.
+
 ---
 
 ## 9. Document Model (Internal)
@@ -315,40 +324,13 @@ Recommended: MIT or Creative Commons.
 
 ---
 
-# PLAN
+## 17. Non-normative future extensions
 
-## Phase 1 — Parser MVP (Dev 1)
-- `.mrcf` format finalised (this document)
-- Parser + Validation engine implemented
-- Unit + integration tests passing
+The following topics are **not part of MRCF 1.0**, but are recognized as important directions for future versions and tooling:
 
-## Phase 2 — Editor (Dev 2)
-- VS Code extension with syntax highlighting
-- Section folding and outline view
-- Task progress indicator
+- **Agent writeback & merge semantics** — how human and AI edits are tracked, merged, and attributed over time.
+- **Confidence & provenance** — optional metadata to indicate whether sections/plans were AI‑generated and with what confidence.
+- **Task relationships** — optional task IDs and dependency metadata (e.g. `depends:`) for richer execution planning.
+- **Role & ownership model** — conventions for mapping people and agents to sections and tasks.
 
-## Phase 3 — AI Integration (Dev 3)
-- Multi-provider AI service layer
-- PLAN and TASKS auto-generation from VISION
-- Diff + Accept/Reject workflow
-
-## Phase 4 — Renderer (Dev 4)
-- HTML document renderer
-- Presentation (slide) generator
-- Static website generator
-- PDF and HTML export
-
----
-
-# TASKS
-
-- [x] define .mrcf syntax
-- [x] define metadata structure
-- [x] define standard sections
-- [x] define asset references
-- [x] define versioning rules
-- [x] define task format with optional metadata
-- [x] define validation rules (V-001 through V-007)
-- [x] define document model (MrcfDocument, MrcfSection, etc.)
-- [x] define rendering targets
-- [ ] publish spec as open standard
+These are intentionally left out of the core 1.0 spec to keep documents simple and widely adoptable, but implementers are encouraged to experiment and feed results back into future revisions.

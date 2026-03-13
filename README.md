@@ -1,10 +1,12 @@
 # MRCF-Protocol
 
-**Machine-Readable Context Format — The AI-native document standard for structured work.**
+**Machine-Readable Context Format — The AI-native methodology and document standard for structured work.**
 
-MRCF (`.mrcf`) is a plain-text document format that serves as the **single source of truth** for projects involving both humans and AI agents. It provides a clear, consistent structure to read, generate, and evolve your project without custom prompt engineering.
+MRCF is **first a project methodology, then a file format**. The 5-section structure gives humans and AI a shared way to think about any project; the `.mrcf` plain‑text format makes that structure easy to parse, version, and render.
 
-Think of it as: **Markdown is to text. Git is to code. MRCF is an interface for AI agents.**
+You can apply the methodology in **plain Markdown** (using the same headings), and use `.mrcf` when you want tighter tooling and validation.
+
+Think of it as: **Markdown is to text. Git is to code. MRCF is a shared interface for humans and AI agents.**
 
 ---
 
@@ -46,7 +48,7 @@ That's the whole format. Open it in any text editor. Commit it to Git. Let an LL
 
 ---
 
-## The 5-section methodology
+## The 5-section methodology (method first, format second)
 
 | Section | Purpose |
 |---------|---------|
@@ -56,7 +58,7 @@ That's the whole format. Open it in any text editor. Commit it to Git. Let an LL
 | **PLAN** | How it gets done. Phases, milestones, roadmap. |
 | **TASKS** | What's next. Markdown checkboxes with optional owner + priority. |
 
-This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the format lets LLMs act on it automatically.
+This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the format (whether `.mrcf` or disciplined `.md`) lets LLMs act on it automatically.
 
 ---
 
@@ -94,10 +96,26 @@ How MRCF-Protocol compares to other AI-driven specification standards:
 
 | Feature | **MRCF** | **BMAD** | **GitHub Spec Kit** | **OpenSpec** |
 | :--- | :--- | :--- | :--- | :--- |
-| **Core Goal** | **Project Memory** | Agile Tickets | AI-CLI Tooling | PRD Standard |
-| **AI Memory** | **Semantic Sections** | File Sharding | CLI Prompts | Lifecycle Archiving |
+| **Core Goal** | **Project Memory (any domain)** | Project Specs & Tickets | AI-CLI Tooling | PRD Standard |
+| **AI Memory** | **Semantic Sections** | File-based Specs | CLI Prompts | Lifecycle Archiving |
 | **Standardized View**| **Yes (Renderer)** | No (Raw MD) | No (Raw MD) | No (Raw MD) |
-| **Source of Truth** | Single `.mrcf` | Many `.md` files | Many `.md` files | Multi-phase files |
+| **Source of Truth** | Single `.mrcf` / structured `.md` | Many `.md` files | Many `.md` files | Multi-phase files |
+
+MRCF and these formats are **complementary** rather than strictly competing: you can still use BMAD-style tickets or GitHub specs on top of an MRCF document that holds the higher-level vision, context, structure, and plan.
+
+### MRCF and MCP (Model Context Protocol)
+
+Modern AI systems increasingly use the **Model Context Protocol (MCP)** to fetch live, structured context (APIs, databases, tools) at runtime.
+
+MRCF focuses on a different layer:
+
+- **MRCF**: human-authored, versioned **project memory** (why, for whom, how, when, what next) in a single, parseable document.
+- **MCP**: runtime **context plumbing** that lets agents pull in current data from many sources.
+
+Used together, an agent can:
+
+1. Read the `.mrcf` file to understand the project’s intent and structure.
+2. Use MCP tools to fetch live data while executing or updating the PLAN and TASKS.
 
 ---
 
@@ -158,6 +176,28 @@ your-project.mrcf
 | [`@mrcf/ai`](src/ai/) | Generate PLAN from VISION. Generate TASKS from PLAN. Analyze consistency. Supports OpenAI, Anthropic, Google. |
 | [`@mrcf/renderer`](src/renderer/) | Render to HTML (responsive, dark mode, sticky TOC), presentation slides, multi-page static site, or ZIP bundle. |
 | [VS Code Extension](extension/) | Syntax highlighting, section folding, outline view, task explorer, AI panel, keyboard navigation. |
+
+---
+
+## Writeback protocol (optional, MVP)
+
+For projects where AI agents are allowed to update the `.mrcf` file, the **writeback protocol** adds:
+
+- **Section permissions** (`sections:` + `defaultPermission` in frontmatter) to control which sections are human-only, ai-assisted (proposals only), or ai-primary (AI can write directly).
+- **Proposal blocks** so AI suggestions are wrapped in a structured `<!-- proposal: ... -->` block instead of silently overwriting content.
+- A lightweight **`HISTORY`** section format (`YYYY-MM-DD | actor | summary`) that records human + AI changes.
+
+See `docs/writeback-spec.md` for the full spec and `example-writeback.mrcf` for a minimal example document using permissions, proposals, HISTORY, and task dependencies.
+
+To try it end-to-end:
+
+```bash
+# 1) Run the renderer smoke test on the full example
+npm run smoke -- example-full.mrcf
+
+# 2) Inspect proposals in a writeback-aware document
+npm run review -- example-writeback.mrcf
+```
 
 ---
 
