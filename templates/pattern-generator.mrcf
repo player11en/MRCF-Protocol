@@ -1,0 +1,83 @@
+---
+title: Generator Skill
+version: 1.0
+created: 2026-03-19
+status: draft
+---
+
+# VISION
+Produce consistent, structured documents by filling a reusable template.
+Solve the problem of agents generating different output structures on every run.
+
+Goal: every run of this skill produces a document that matches the same template and passes the same style guide, regardless of input variation.
+
+# CONTEXT
+Pattern: Generator
+Use when: the user asks to write, create, draft, or generate a structured document (report, spec, PRD, README, proposal, etc.).
+Trigger phrases: "generate", "write a", "create a", "draft a", "produce a".
+
+The agent acts as a project manager: load the template, gather missing variables, fill every section.
+
+Constraints:
+- Every section in the template must be present in the output
+- Style guide rules are non-negotiable
+- Agent must ask for missing information before generating — do not guess
+
+# STRUCTURE
+## File Layout
+```
+skills/your-generator/
+  pattern-generator.mrcf       ← this file (the skill definition)
+  assets/
+    output-template.md          ← the required output structure
+  references/
+    style-guide.md              ← tone, formatting, length rules
+```
+
+## Template Design
+`assets/output-template.md` should use placeholder variables:
+```
+## {{TOPIC}}
+**Audience:** {{TARGET_AUDIENCE}}
+**Key findings:** {{KEY_FINDINGS}}
+```
+
+## Style Guide Coverage
+`references/style-guide.md` should cover:
+- Tone (technical/executive/general)
+- Heading hierarchy rules
+- Maximum section length
+- Required and optional sections
+- Formatting conventions (tables, bullets, code blocks)
+
+# PLAN
+Phase 1: Define the document type this generator produces
+Phase 2: Create the output template with all required sections
+Phase 3: Write the style guide with clear, enforceable rules
+Phase 4: List the variables the agent must gather before generating
+Phase 5: Test with 3 different inputs and verify structural consistency
+
+# TASKS
+- [ ] Define the document type and name the skill
+- [ ] Create `assets/output-template.md` with all required sections
+- [ ] Mark every section as required or optional in the template
+- [ ] Create `references/style-guide.md` with at least 5 rules
+- [ ] List all variables the agent must collect from the user
+- [ ] Test: run with complete input → verify all sections present
+- [ ] Test: run with incomplete input → verify agent asks for missing info
+
+# AGENT
+pattern: generator
+interaction: multi-turn
+assets:
+  - assets/output-template.md
+references:
+  - references/style-guide.md
+instructions: |
+  You are a structured document generator. Follow these steps exactly:
+  Step 1: Load references/style-guide.md for tone and formatting rules.
+  Step 2: Load assets/output-template.md for the required output structure.
+  Step 3: Ask the user for any missing information needed to fill the template.
+  Step 4: Fill every section of the template following the style guide.
+  Step 5: Return the completed document as a single Markdown output.
+  DO NOT skip sections. DO NOT guess missing variables — ask first.

@@ -1,0 +1,101 @@
+---
+title: Pipeline Skill
+version: 1.0
+created: 2026-03-19
+status: draft
+---
+
+# VISION
+Enforce a strict, sequential multi-step workflow with hard checkpoints.
+Prevent the agent from skipping steps or jumping to a final output before intermediate results are validated.
+
+Goal: produce reliable, auditable outputs for complex tasks where step order matters and partial results must be confirmed before continuing.
+
+# CONTEXT
+Pattern: Pipeline
+Use when: the task has multiple sequential steps where each step depends on the previous one being correct.
+Trigger phrases: "generate X from Y", "process this through", "run the full workflow", "document this module", "migrate this code".
+
+The pipeline itself is the workflow definition. Gate conditions are explicit: the agent cannot proceed to the next step until the current step passes its check.
+
+Constraints:
+- DO NOT skip steps or proceed if a step fails
+- Each step may load different reference files — only load what is needed at that step
+- Explicit gate conditions must be stated and enforced
+- Failed steps must be reported with the reason before stopping
+
+# STRUCTURE
+## File Layout
+```
+skills/your-pipeline/
+  pattern-pipeline.mrcf        ← this file (the skill definition)
+  references/
+    step-N-guide.md             ← reference file for step N (loaded only at step N)
+  assets/
+    output-template.md          ← template for the final assembled output
+```
+
+## Step Design Principles
+1. Each step has a single, verifiable output
+2. Reference files are loaded only at the step that needs them (keeps context clean)
+3. Gate conditions are explicit diamond checks: "Do NOT proceed to Step N+1 until user confirms Step N output"
+4. The final step is always a quality check against a checklist
+
+## Gate Condition Syntax
+```
+## Step 2 — [Step Name]
+[Instructions]
+Do NOT proceed to Step 3 until the user confirms the Step 2 output.
+```
+
+# PLAN
+Phase 1: Define the task this pipeline processes (input type → output type)
+Phase 2: Break the task into 3–5 sequential steps with clear output criteria
+Phase 3: Write a reference file for each step that needs one
+Phase 4: Create `assets/output-template.md` for the assembled output
+Phase 5: Write the final quality checklist (Step N)
+Phase 6: Test the full pipeline with a real input
+
+# TASKS
+- [ ] Define the input type and final output type for this pipeline
+- [ ] Break the task into 3–5 steps with explicit success criteria per step
+- [ ] Write reference files for steps that need them (in `references/`)
+- [ ] Create `assets/output-template.md` for the final assembled output
+- [ ] Write a quality checklist for the final review step
+- [ ] Add explicit gate conditions between all steps
+- [ ] Test: run all steps in order → verify each step output before proceeding
+- [ ] Test: introduce a failure in Step 2 → verify pipeline halts with reason
+- [ ] Verify final output satisfies all quality checklist items
+
+# AGENT
+pattern: pipeline
+interaction: multi-turn
+steps: 4
+assets:
+  - assets/output-template.md
+instructions: |
+  You are running a structured pipeline. Execute each step in order.
+  DO NOT skip steps. DO NOT proceed to the next step if the current step fails or
+  the user has not confirmed the output.
+
+  ## Step 1 — Inventory
+  Analyze the input and produce a complete inventory of what will be processed.
+  Present the inventory. Ask: "Is this complete? Should anything be added or excluded?"
+  Do NOT proceed to Step 2 until the user confirms.
+
+  ## Step 2 — Process
+  For each item in the inventory:
+  - Load the relevant reference file for this step
+  - Apply the processing rules
+  - Present the results for each item
+  Do NOT proceed to Step 3 until the user confirms the Step 2 results.
+
+  ## Step 3 — Assemble
+  Load assets/output-template.md.
+  Compile all processed items into the final output structure.
+  Present the assembled draft.
+
+  ## Step 4 — Quality Check
+  Review the assembled output against the quality checklist.
+  Report: pass/fail for each item.
+  Fix all failures before presenting the final output.

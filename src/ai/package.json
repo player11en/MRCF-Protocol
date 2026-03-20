@@ -1,0 +1,13 @@
+{
+    "name": "@mrcf/ai",
+    "version": "0.1.0",
+    "description": "AI Integration layer for MRCF",
+    "main": "index.ts",
+    "types": "index.ts",
+    "scripts": {
+        "test": "jest"
+    },
+    "dependencies": {
+        "@mrcf/parser": "*"
+    }
+}

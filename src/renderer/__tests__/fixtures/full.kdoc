@@ -1,0 +1,97 @@
+---
+title: Full Test Document
+version: 2.0
+author: Test Team
+created: 2026-01-01
+updated: 2026-03-12
+tags:
+  - test
+  - documentation
+status: active
+---
+
+# VISION
+
+Build a platform where developers can collaborate
+on structured knowledge with AI.
+
+Success criteria:
+- 100 active users in 3 months
+- Sub-second render times
+
+# CONTEXT
+
+Target users: developers and architects.
+
+Constraints:
+- Must work offline
+- Must support Git versioning
+
+| Environment | Status |
+| --- | --- |
+| Node 18+ | Required |
+| Browser | Supported |
+
+# STRUCTURE
+
+## System Architecture
+
+The system consists of three main components:
+
+### Parser Engine
+
+Reads `.kdoc` files and produces the document model.
+
+### Render Engine
+
+Multiple output formats from a single source.
+
+### AI Assistant
+
+Generates plans and tasks from vision.
+
+## Data Model
+
+```
+Document
+  ├ metadata
+  ├ sections[]
+  └ assets[]
+```
+
+# PLAN
+
+## Phase 1 — Prototype
+
+- Parser implementation
+- Basic HTML renderer
+
+## Phase 2 — Editor
+
+- VS Code extension
+- Syntax highlighting
+
+## Phase 3 — AI
+
+- Plan generation
+- Task generation
+
+# TASKS
+
+- [x] define document spec
+- [x] implement parser
+- [ ] build HTML renderer
+- [ ] build slide generator
+- [ ] integrate AI service
+  owner: dev3
+  priority: high
+
+# CUSTOM_SECTION
+
+This is a custom section that the renderer should handle gracefully.
+
+It contains **bold text**, *italic text*, and `inline code`.
+
+> This is a blockquote.
+
+![diagram](assets/architecture.png)

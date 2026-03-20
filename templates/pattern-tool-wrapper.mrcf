@@ -1,0 +1,69 @@
+---
+title: Tool Wrapper Skill
+version: 1.0
+created: 2026-03-19
+status: draft
+---
+
+# VISION
+Give an AI agent on-demand expertise for a specific library, framework, or API.
+Instead of hardcoding conventions in a system prompt, package them here and load this document only when the agent works with that technology.
+
+Goal: reduce prompt bloat, keep conventions version-controlled, share across team.
+
+# CONTEXT
+Pattern: Tool Wrapper
+Use when: the user is building, reviewing, or debugging code that relies on a specific library.
+Trigger keywords: library name, framework name, specific API name.
+
+The agent loads this document when those keywords appear. Context is only consumed when relevant.
+
+Constraints:
+- Conventions file must be in `references/` directory
+- Rules in the conventions file are treated as absolute truth
+- Agent must cite the specific rule when flagging a violation
+
+# STRUCTURE
+## File Layout
+```
+skills/your-library-expert/
+  pattern-tool-wrapper.mrcf   ← this file (the skill definition)
+  references/
+    conventions.md             ← library-specific rules and best practices
+```
+
+## Conventions File Format
+`references/conventions.md` should contain:
+- Naming conventions
+- Import patterns
+- Error handling rules
+- Anti-patterns to avoid
+- Examples of correct usage
+
+# PLAN
+Phase 1: Define the trigger keywords and load condition
+Phase 2: Write `references/conventions.md` for your target library
+Phase 3: Test by asking the agent to review a code snippet
+Phase 4: Iterate on conventions based on false positives/negatives
+
+# TASKS
+- [ ] Identify the library/framework this skill wraps
+- [ ] Define trigger keywords (library name, file extensions, import patterns)
+- [ ] Create `references/conventions.md` with at least 10 rules
+- [ ] Test with a correct code sample (agent should find no violations)
+- [ ] Test with a code sample that violates 3 rules
+- [ ] Verify agent cites specific rule numbers in findings
+
+# AGENT
+pattern: tool-wrapper
+interaction: single-turn
+load-on-trigger: true
+references:
+  - references/conventions.md
+instructions: |
+  You are an expert in [LIBRARY_NAME]. When the user asks about or shares code
+  using this library:
+  1. Load references/conventions.md
+  2. Apply every rule to the user's code or question
+  3. For each violation: cite the rule, explain why it matters, show the fix
+  4. For new code: follow every convention exactly

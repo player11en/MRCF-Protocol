@@ -1,0 +1,76 @@
+---
+title: Sample Software Service
+version: 0.1
+created: 2026-03-13
+author: Your Team
+status: draft
+---
+
+# VISION
+Build a small web service that lets users create, update, and share short notes with AI-assisted summaries.
+
+## Problem
+Teams scatter notes across tools; nothing stays in sync or is searchable.
+
+## Goal
+Create a lightweight, searchable notes service with AI summarization for each note.
+
+## Success Criteria
+- Users can create, edit, and delete notes.
+- Notes are searchable by title and content.
+- AI can generate or regenerate a short summary per note.
+
+# CONTEXT
+
+## Target Audience
+- Small product / engineering teams (3–10 people).
+
+## Technical Environment
+- Backend: Node.js / TypeScript
+- Storage: PostgreSQL
+- Frontend: React or similar SPA
+
+## Constraints
+- Keep infrastructure simple (single region, no hard multi-tenancy).
+- Must be usable locally with Docker.
+
+# STRUCTURE
+
+## System Architecture
+- API service (REST/JSON)
+- Database (PostgreSQL)
+- Background worker for AI summarization
+
+## Data Model
+- `users` (id, email, name)
+- `notes` (id, user_id, title, body, summary, created_at, updated_at)
+
+## Decisions
+- Start with server-side rendered HTML for simplicity; add SPA later if needed.
+- Use OpenAI-compatible API for summaries; abstract via a small adapter.
+
+# PLAN
+
+## Phase 1 — Core CRUD (Week 1)
+- Basic API for notes (create/read/update/delete).
+- Simple HTML UI for listing and editing notes.
+
+## Phase 2 — Search & Auth (Week 2)
+- Full-text search on notes.
+- Email-based login (magic link or password).
+
+## Phase 3 — AI Summaries (Week 3)
+- Integrate AI provider for generating note summaries.
+- Add “Regenerate summary” button per note.
+
+# TASKS
+
+- [ ] Set up project structure and tooling
+- [ ] Define DB schema for users and notes
+- [ ] Implement notes CRUD API
+- [ ] Build minimal HTML UI for notes
+- [ ] Add search endpoint and UI
+- [ ] Integrate auth (email login)
+- [ ] Implement AI summary adapter
+- [ ] Add “generate summary” endpoint and UI action
+

@@ -1,0 +1,316 @@
+---
+title: AI Knowledge Platform
+version: 1.2
+author: Team Alpha
+created: 2026-03-01
+updated: 2026-03-12
+tags:
+  - ai
+  - platform
+  - documentation
+status: active
+---
+
+# VISION
+
+Build an open, AI-native document platform where developers and architects can
+structure, evolve, and share project knowledge — with LLMs as first-class
+collaborators.
+
+## Problem
+
+Existing formats (PDF, DOCX, Markdown) are either:
+- unstructured for machines
+- too complex to parse
+- not designed for iterative AI collaboration
+
+## Goal
+
+Create a single document format that is:
+1. Human-readable in any plain-text editor
+2. Semantically structured for LLM consumption
+3. Versionable over Git
+4. Trivially parseable by tools
+
+## Success Criteria
+
+- A developer can describe a full project in one `.kdoc` file
+- An LLM can generate PLAN and TASKS from VISION alone
+- The document renders to HTML, slides, and a static site without modification
+
+# CONTEXT
+
+## Target Audience
+
+### Primary Users
+
+Software developers and system architects who need to:
+- Document projects from idea to execution
+- Collaborate with AI assistants during planning
+- Share structured knowledge across teams
+
+### Secondary Users
+
+Technical writers, product managers, researchers using the same
+VISION → CONTEXT → STRUCTURE → PLAN → TASKS methodology for non-software work.
+
+## Technical Environment
+
+- Files are plain text (UTF-8), stored in Git
+- Tooling runs in Node.js 18+ environments
+- VS Code is the primary editing surface (extension included)
+- LLM providers: OpenAI, Anthropic, Google (via @kdoc/ai adapter)
+
+## Constraints
+
+- The format must remain human-readable without tooling
+- Parser must be implementable in under 500 lines
+- No proprietary lock-in — MIT licensed specification
+
+## Competitive Landscape
+
+| Tool      | Structured | AI-native | Plain text | Open |
+|-----------|------------|-----------|------------|------|
+| Notion    | Partial    | No        | No         | No   |
+| Obsidian  | No         | No        | Yes        | No   |
+| Confluence| Partial    | No        | No         | No   |
+| .kdoc     | Yes        | Yes       | Yes        | Yes  |
+
+# STRUCTURE
+
+## System Architecture
+
+The platform consists of four loosely coupled packages:
+
+```
+.kdoc file
+    ↓
+@kdoc/parser   ← canonical types, parse, validate
+    ↓        \
+@kdoc/ai      @kdoc/renderer
+    ↓              ↓
+extension/   ← VS Code UI, AI panel, task management
+```
+
+## DECISIONS
+
+- Use a single `.mrcf` file as the project’s source of truth instead of many loosely related markdown files.
+- Keep the parser simple and dependency-free so third parties can reimplement it easily.
+- Rely on open, plain-text tooling (Git, editors, static HTML) rather than proprietary formats.
+
+## Package: @kdoc/parser
+
+### Responsibilities
+
+- Parse YAML front-matter metadata
+- Detect and extract standard sections (VISION, CONTEXT, STRUCTURE, PLAN, TASKS)
+- Parse nested subsections (##, ###)
+- Extract task checkboxes with optional metadata (owner, priority)
+- Extract asset references (images/diagrams)
+- Validate documents against 7 rules (V-001 to V-007)
+
+### Key Types
+
+```ts
+KDocDocument   // root model
+KDocMetadata   // title, version, created, tags, status
+KDocSection    // name, content, subsections[], tasks[], assets[]
+KDocTask       // description, completed, owner?, priority?
+```
+
+### Public API
+
+```ts
+parse(source: string): ParseResult
+validate(doc: KDocDocument): ValidationResult
+resolveAssets(assets, docPath): AssetResolveResult
+```
+
+## Package: @kdoc/ai
+
+### Responsibilities
+
+- Provide a unified LLM interface across OpenAI, Anthropic, Google
+- Rate limiting with exponential backoff
+- Document analysis (consistency checking, completeness)
+- Section generation (PLAN from VISION, TASKS from PLAN)
+- Diff + Accept/Reject for AI-proposed changes
+
+### Providers
+
+- OpenAI (gpt-4o default)
+- Anthropic (claude-sonnet default)
+- Google (gemini-pro default)
+
+## Package: @kdoc/renderer
+
+### Responsibilities
+
+- Normalize `KDocDocument` into a format-agnostic `RenderTree`
+- Render to full HTML page (with TOC, metadata, theme)
+- Generate presentation slide deck (section-to-slide mapping)
+- Generate static multi-page documentation site
+- Export to HTML, slides, site, ZIP bundle
+
+### Render Pipeline
+
+```
+KDocDocument
+    ↓  normalize()
+RenderTree
+    ↓
+renderHtml()     → HTML string
+generateSlides() → SlideDeck
+generateSite()   → Map<filename, HTML>
+exportDocument() → ExportResult
+```
+
+## Package: extension (VS Code)
+
+### Responsibilities
+
+- Language registration for `.kdoc` files
+- Syntax highlighting (TextMate grammar)
+- Section folding and outline view
+- Sidebar: section list, task explorer, AI panel
+- Commands: navigate sections, toggle tasks
+- AI panel: presets (Generate PLAN, Generate TASKS, Analyze), section selection
+
+### Editor Keybindings
+
+| Key               | Action                |
+|-------------------|-----------------------|
+| Ctrl+Alt+Down     | Go to next section    |
+| Ctrl+Alt+Up       | Go to previous section|
+| Ctrl+Alt+Space    | Toggle task checkbox  |
+
+# PLAN
+
+## Phase 1 — Core Format (Weeks 1–2)
+
+Define the `.kdoc` specification and build the parser.
+
+### Milestones
+
+- `.kdoc` spec published (`docs/kdoc-spec.md`)
+- Parser handles all standard sections, subsections, tasks, assets
+- Validation engine with 7 rules
+- 30+ unit + integration tests passing
+
+## Phase 2 — Editor Integration (Weeks 3–4)
+
+Build VS Code extension with core editing features.
+
+### Milestones
+
+- Language registration and syntax highlighting
+- Section outline view and folding
+- Task explorer with filtering
+- AI panel with mock service
+
+## Phase 3 — AI Integration (Weeks 5–6)
+
+Wire real LLM providers and generation workflows.
+
+### Milestones
+
+- OpenAI, Anthropic, Google providers implemented
+- Rate limiting and retry logic
+- PLAN generation from VISION
+- TASKS generation from PLAN
+- Diff + Accept/Reject for AI output
+
+## Phase 4 — Renderer & Export (Weeks 7–8)
+
+Build rendering pipeline and export system.
+
+### Milestones
+
+- HTML renderer with theme, TOC, metadata
+- Slide generator with section mapping
+- Static site generator (MkDocs-style)
+- ZIP export with all assets
+- 60+ renderer tests passing
+
+## Phase 5 — Integration & Release (Weeks 9–10)
+
+Wire all four packages together, run end-to-end tests, publish.
+
+### Milestones
+
+- Monorepo workspace setup verified
+- End-to-end smoke test: parse → validate → generate → render → export
+- VS Code extension published to marketplace
+- `kdoc-spec.md` published as open standard (MIT)
+- Example project templates available
+
+# TASKS
+
+## Parser (Dev 1)
+
+- [x] define .kdoc syntax
+- [x] define metadata structure (required + optional fields)
+- [x] define standard sections (VISION, CONTEXT, STRUCTURE, PLAN, TASKS)
+- [x] define task format with optional metadata (owner, priority)
+- [x] define asset references
+- [x] define validation rules V-001 through V-007
+- [x] implement metadata parser (YAML front-matter)
+- [x] implement section parser (sections, subsections, tasks, assets)
+- [x] implement asset resolver (path traversal protection)
+- [x] implement validation engine
+- [x] write 30+ unit and integration tests
+- [x] publish kdoc-spec.md
+
+## Editor (Dev 2)
+
+- [x] create VS Code extension scaffold
+- [x] register .kdoc language and file association
+- [x] implement TextMate syntax grammar
+- [x] implement section folding
+- [x] implement outline / document symbols view
+- [x] implement sidebar section list
+- [x] implement task explorer with All/Open/Done filter
+- [x] implement AI panel webview with presets
+- [x] implement section navigation commands
+- [x] implement task toggle command
+
+## AI (Dev 3)
+
+- [x] implement OpenAI provider adapter
+- [x] implement Anthropic provider adapter
+- [x] implement Google provider adapter
+- [x] implement rate limiter with exponential backoff
+- [x] implement prompt template engine
+- [x] implement document context builder
+- [x] implement consistency checker
+- [x] implement PLAN generator from VISION
+- [x] implement TASKS generator from PLAN
+- [x] implement section injector
+- [x] implement diff engine (line-level added/removed/unchanged)
+- [x] implement change manager (accept/reject pending changes)
+- [x] implement version tracker
+- [x] write 87 tests
+- [x] migrate local Kdoc* types to @kdoc/parser canonical types
+
+## Renderer (Dev 4)
+
+- [x] implement renderCore (KDocDocument → RenderTree)
+- [x] implement HTML renderer with TOC, theme, metadata
+- [x] implement Markdown-to-HTML transformer (no external deps)
+- [x] implement slide generator (section → slide type mapping)
+- [x] implement static site generator (multi-page, navigation, search index)
+- [x] implement export orchestrator (html, slides, site, zip)
+- [x] write 63 renderer tests
+- [x] expand ExportFormat to include zip and pdf
+
+## Integration
+
+- [x] add moduleNameMapper to root jest.config.js
+- [x] set up monorepo workspaces (parser, ai, renderer, extension)
+- [x] fix extension @kdoc/ai dependency
+- [x] verify all dev stream type contracts aligned
+- [x] run smoke test: parse → validate → render → export
+- [ ] publish VS Code extension to marketplace
+- [ ] publish @kdoc/parser as open-source package (npm)
+- [ ] create project template library (software, research, book)
+- [ ] write end-user documentation

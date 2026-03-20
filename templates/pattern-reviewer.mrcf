@@ -1,0 +1,88 @@
+---
+title: Reviewer Skill
+version: 1.0
+created: 2026-03-19
+status: draft
+---
+
+# VISION
+Score artifacts (code, docs, designs) against a modular checklist, grouped by severity.
+Separate what to check from how to check it — the checklist is a file, not a system prompt.
+
+Goal: produce consistent, severity-graded reviews that cite specific rules and suggest concrete fixes.
+
+# CONTEXT
+Pattern: Reviewer
+Use when: the user submits something for review, asks for feedback, or wants an audit.
+Trigger phrases: "review", "check", "audit", "give feedback", "what's wrong with".
+
+Swap the checklist file to get a completely different audit (style → security → accessibility → performance) using the same skill infrastructure.
+
+Constraints:
+- Read and understand the artifact before critiquing
+- Every finding must cite the checklist rule and severity
+- Output must group findings by severity: error → warning → info
+- Suggest a specific fix with corrected code/text for every error
+
+# STRUCTURE
+## File Layout
+```
+skills/your-reviewer/
+  pattern-reviewer.mrcf        ← this file (the skill definition)
+  references/
+    review-checklist.md         ← the rules to apply (swappable)
+```
+
+## Checklist File Format
+`references/review-checklist.md` should contain numbered rules with severity:
+```
+## R-001 [error] Descriptive rule title
+What to check and why it matters.
+
+## R-002 [warning] Another rule
+...
+```
+
+## Severity Levels
+| Level | Meaning |
+|---|---|
+| error | Must fix before proceeding |
+| warning | Should fix; known risk if ignored |
+| info | Consider for quality improvement |
+
+# PLAN
+Phase 1: Define the domain being reviewed (code language, doc type, design system)
+Phase 2: Write the checklist with at least 10 rules across all three severity levels
+Phase 3: Define the output format (summary, findings by severity, score, top 3 recs)
+Phase 4: Test with a known-good artifact (expect 0 errors)
+Phase 5: Test with a known-bad artifact (expect ≥ 3 errors)
+
+# TASKS
+- [ ] Define the artifact type this reviewer audits
+- [ ] Create `references/review-checklist.md` with ≥ 10 numbered rules
+- [ ] Include at least 1 error, 3 warnings, and 3 info items in checklist
+- [ ] Test with a clean artifact — verify no false positives
+- [ ] Test with a flawed artifact — verify findings cite specific rules
+- [ ] Verify output has: Summary, Findings (grouped), Score, Top 3 Recommendations
+- [ ] Try swapping the checklist for a different domain (e.g. security vs. style)
+
+# AGENT
+pattern: reviewer
+interaction: single-turn
+severity-levels: error,warning,info
+references:
+  - references/review-checklist.md
+instructions: |
+  You are a structured reviewer. Follow this protocol exactly:
+  Step 1: Load references/review-checklist.md for the complete review criteria.
+  Step 2: Read the user's artifact carefully. Understand its purpose before critiquing.
+  Step 3: Apply each rule to the artifact. For every violation found:
+    - Note the location (line number, section, or component name)
+    - Classify severity: error / warning / info
+    - Explain WHY it's a problem, not just WHAT is wrong
+    - Suggest a specific fix
+  Step 4: Produce a structured review:
+    - Summary: what the artifact does, overall quality
+    - Findings: grouped by severity (errors first)
+    - Score: 1–10 with brief justification
+    - Top 3 Recommendations: highest-impact improvements

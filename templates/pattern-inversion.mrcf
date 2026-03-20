@@ -1,0 +1,87 @@
+---
+title: Inversion Skill
+version: 1.0
+created: 2026-03-19
+status: draft
+---
+
+# VISION
+Flip the default agent dynamic: instead of generating immediately from a vague prompt, the agent interviews the user first.
+Collect all required context through structured, sequential questions before synthesizing any output.
+
+Goal: produce high-quality, requirement-complete outputs by refusing to guess — the agent gathers before it acts.
+
+# CONTEXT
+Pattern: Inversion
+Use when: the user asks to plan, design, or build something that requires context you don't yet have.
+Trigger phrases: "I want to build", "help me plan", "design a system", "start a new project", "create a strategy for".
+
+The agent acts as a structured interviewer. Questions are asked one at a time. The agent does not move to the next phase until the current phase is fully answered.
+
+Constraints:
+- DO NOT generate output until all required phases are complete
+- Ask questions one at a time — do not dump a list
+- Wait for each answer before asking the next question
+- Do not skip questions, even if the user seems impatient
+
+# STRUCTURE
+## File Layout
+```
+skills/your-inversion-skill/
+  pattern-inversion.mrcf       ← this file (the skill definition)
+  assets/
+    output-template.md          ← template for the final synthesized output
+```
+
+## Phase Design
+Structure questions into phases. Each phase has a clear purpose:
+- Phase 1: Problem discovery (what problem, who, at what scale)
+- Phase 2: Technical constraints (environment, stack, non-negotiables)
+- Phase 3: Synthesis (load template, fill from gathered answers, confirm with user)
+
+## Gate Conditions
+Between phases, explicitly state the condition that must be true to proceed:
+"Only after Phase 1 is fully answered, proceed to Phase 2."
+
+# PLAN
+Phase 1: Define the domain (what kind of project/plan this skill handles)
+Phase 2: Write Phase 1 discovery questions (problem, users, scale)
+Phase 3: Write Phase 2 constraint questions (tech, deployment, requirements)
+Phase 4: Create `assets/output-template.md` for the synthesized output
+Phase 5: Test the full interview flow with a realistic user scenario
+
+# TASKS
+- [ ] Define the domain and trigger phrases for this skill
+- [ ] Write Phase 1 questions (3–5 discovery questions)
+- [ ] Write Phase 2 questions (3–5 constraint questions)
+- [ ] Create `assets/output-template.md` for final output structure
+- [ ] Test: answer all questions → verify output fills every template section
+- [ ] Test: try to skip a question → verify agent refuses and asks again
+- [ ] Test: give incomplete answers → verify agent asks for clarification
+
+# AGENT
+pattern: inversion
+interaction: multi-turn
+phases: 3
+assets:
+  - assets/output-template.md
+instructions: |
+  You are conducting a structured requirements interview.
+  DO NOT start building, designing, or generating output until all phases are complete.
+
+  PHASE 1 — Discovery (ask one question at a time, wait for each answer):
+  Q1: "What problem does this solve for its users?"
+  Q2: "Who are the primary users and what is their context?"
+  Q3: "What is the expected scale or scope?"
+
+  PHASE 2 — Constraints (only after Phase 1 is fully answered):
+  Q4: "What environment or platform will this run on?"
+  Q5: "Do you have technology or stack requirements?"
+  Q6: "What are the non-negotiable requirements?"
+
+  PHASE 3 — Synthesis (only after all questions are answered):
+  1. Load assets/output-template.md
+  2. Fill every section using the gathered answers
+  3. Present the completed output
+  4. Ask: "Does this accurately capture your requirements? What would you change?"
+  5. Iterate until the user confirms

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MRCF",
+  "scopeName": "source.mrcf",
+  "patterns": [
+    { "include": "#frontmatter" },
+    { "include": "#section-headers" },
+    { "include": "#tasks" }
+  ],
+  "repository": {
+    "frontmatter": {
+      "begin": "^(---)\\s*$",
+      "end": "^(---)\\s*$",
+      "name": "meta.frontmatter.mrcf",
+      "patterns": [
+        { "include": "#frontmatter-key" },
+        { "include": "#frontmatter-value" },
+        { "include": "#frontmatter-list" }
+      ]
+    },
+    "frontmatter-key": {
+      "match": "^([a-zA-Z_][a-zA-Z0-9_-]*)\\s*:",
+      "captures": {
+        "1": { "name": "entity.other.attribute-name.mrcf" }
+      }
+    },
+    "frontmatter-value": {
+      "match": ":\\s*(.+)$",
+      "captures": {
+        "1": { "name": "string.unquoted.mrcf" }
+      }
+    },
+    "frontmatter-list": {
+      "match": "^\\s*-\\s+(.+)$",
+      "captures": {
+        "1": { "name": "string.unquoted.mrcf" }
+      }
+    },
+    "section-headers": {
+      "patterns": [
+        {
+          "match": "^(#)\\s+([A-Z][A-Z0-9_ ]*)$",
+          "captures": {
+            "1": { "name": "punctuation.definition.heading.mrcf" },
+            "2": { "name": "entity.name.section.mrcf" }
+          }
+        },
+        {
+          "match": "^(#{2,})\\s+(.+)$",
+          "captures": {
+            "1": { "name": "punctuation.definition.heading.mrcf" },
+            "2": { "name": "entity.name.section.mrcf" }
+          }
+        }
+      ]
+    },
+    "tasks": {
+      "match": "^(\\s*)(-)\\s+(\\[)(x| )(\\])\\s+(.*)$",
+      "captures": {
+        "2": { "name": "punctuation.definition.list.mrcf" },
+        "3": { "name": "punctuation.definition.task.mrcf" },
+        "4": { "name": "keyword.other.task.mrcf" },
+        "5": { "name": "punctuation.definition.task.mrcf" },
+        "6": { "name": "string.unquoted.mrcf" }
+      }
+    }
+  }
+}

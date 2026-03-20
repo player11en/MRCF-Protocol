@@ -1,0 +1,27 @@
+---
+title: Broken Assets Test
+version: 1.0
+created: 2026-03-12
+---
+
+# VISION
+
+Test document with broken asset references.
+
+# CONTEXT
+
+This document intentionally references assets that do not exist.
+
+# STRUCTURE
+
+![missing diagram](assets/nonexistent.png)
+
+![another missing](assets/does-not-exist.svg)
+
+# PLAN
+
+No plan yet.
+
+# TASKS
+
+- [ ] fix broken assets

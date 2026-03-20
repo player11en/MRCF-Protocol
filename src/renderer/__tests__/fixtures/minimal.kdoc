@@ -1,0 +1,34 @@
+---
+title: Minimal Test Document
+version: 1.0
+created: 2026-03-12
+---
+
+# VISION
+
+Build a simple document rendering system.
+
+# CONTEXT
+
+Target users: developers who need structured documentation.
+
+# STRUCTURE
+
+## System Architecture
+
+Parser reads .kdoc files and produces a document model.
+
+### API Layer
+
+REST API for document operations.
+
+# PLAN
+
+Phase 1: Build parser and basic renderer.
+Phase 2: Add AI integration.
+
+# TASKS
+
+- [ ] implement parser
+- [x] define document spec
+- [ ] build renderer

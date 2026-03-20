@@ -1,0 +1,40 @@
+{
+  "name": "mrcf",
+  "version": "0.1.0",
+  "description": "AI-native structured document format (.mrcf)",
+  "private": true,
+  "workspaces": [
+    "parser",
+    "extension",
+    "src/ai",
+    "src/renderer"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:parser": "cd parser && npm run build",
+    "test": "jest",
+    "test:parser": "cd parser && npm test",
+    "test:ai": "jest --testPathPattern=src/ai",
+    "test:renderer": "jest --testPathPattern=src/renderer",
+    "test:all": "npm run test:parser && npm test",
+    "smoke": "ts-node --project tsconfig.json scripts/smoke.ts",
+    "review": "ts-node --project tsconfig.json scripts/review.ts",
+    "import": "ts-node --project tsconfig.json scripts/import.ts",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mrcf/parser": "*",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/jszip": "^3.4.0",
+    "@types/node": "^20.11.0",
+    "@types/pdf-parse": "^1.1.5",
+    "jest": "^29.7.0",
+    "mammoth": "^1.11.0",
+    "pdf-parse": "^2.2.2",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.4.0"
+  }
+}
