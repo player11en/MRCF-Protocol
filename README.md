@@ -62,14 +62,14 @@ Phase 3: UI + export (weeks 5–6)
 # TASKS
 
 [TASK-1]
-title: Build ingestion pipeline
+description: Build ingestion pipeline
 status: in_progress
 owner: dev1
 priority: high
 id: T-001
 
 [TASK-2]
-title: Write API docs
+description: Write API docs
 status: planned
 owner: dev2
 priority: medium
@@ -233,6 +233,18 @@ your-project.mrcf
 | [`@mrcf/ai`](src/ai/) | Generate PLAN, TASKS, INSIGHTS, DECISIONS, and SUMMARY. Analyze consistency. Supports OpenAI, Anthropic, Google. |
 | [`@mrcf/renderer`](src/renderer/) | Render to HTML (responsive, dark mode, sticky TOC), presentation slides, multi-page static site, or ZIP bundle. |
 | [VS Code Extension](extension/) | Syntax highlighting, section folding, outline view, task explorer, AI panel, keyboard navigation. |
+
+### Companion tool: PDF to IDE (`pdf-to-mrcf`)
+
+For PDF-first workflows, use **PDF to IDE** (repository: `pdf-to-mrcf`) to convert PDFs into an MRCF-ready sidecar package.
+
+Output includes:
+- `index.md` for human navigation
+- `manifest.json` for machine metadata
+- `*.mrcf` document aligned with MRCF Protocol v2
+- per-page images and extracted text files
+
+Repository: https://github.com/player11en/pdf-to-mrcf
 
 ---
 

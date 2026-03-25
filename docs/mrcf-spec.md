@@ -196,6 +196,10 @@ depends_on: [TASK-0]
 related_insights: [INSIGHT-1]
 ```
 
+`description` is the canonical task text field in v2 block format.
+For backward compatibility, tools MAY accept `title` as an alias, but writers
+SHOULD prefer `description` for interoperability.
+
 Supported fields:
 
 | Field             | Type                                              | Required |
@@ -208,7 +212,7 @@ Supported fields:
 | id                | string (inferred from block header)               | Auto     |
 | priority          | `low \| medium \| high`                           | No       |
 
-### 6.1 References to external documents
+### 6.2 References to external documents
 
 Task descriptions MAY include `@ref(...)` tokens to refer to external sources such as
 PDF pages or imported chunks.  The exact identifier format is left to tools, but a
@@ -252,8 +256,8 @@ External URLs (`http://`, `https://`) are accepted but not validated.
 Unknown section names are accepted as **custom sections** and preserved by the parser.
 
 ```
-# DECISIONS
-We chose TypeScript for the parser.
+# OPERATIONS_NOTE
+Deploy nightly builds to the staging environment.
 ```
 
 Custom sections are included in `sections[]` with `isStandard: false`.
@@ -334,7 +338,7 @@ A result with `ok: true` guarantees a non-null document.
 
 ---
 
-## 7.1 SUMMARY Section
+## 10.4 SUMMARY Section
 
 ```
 # SUMMARY
@@ -346,7 +350,7 @@ stable_parts: which parts are settled
 All fields are optional free-text key-value pairs.  The three keys above are
 recommended; additional custom keys are preserved by the parser.
 
-## 7.2 INSIGHTS Section
+## 10.5 INSIGHTS Section
 
 ```
 # INSIGHTS
@@ -362,7 +366,7 @@ source: TASK-N
 `0.0–1.0` (not an enum) to allow fine-grained expression. `source` is the ID
 of the task or decision this insight came from.
 
-## 7.3 DECISIONS Section
+## 10.6 DECISIONS Section
 
 ```
 # DECISIONS
@@ -376,7 +380,7 @@ impact: low | medium | high
 
 `choice` and `reason` are required per block.
 
-## 7.4 REFERENCES Section
+## 10.7 REFERENCES Section
 
 ```
 # REFERENCES
@@ -384,6 +388,8 @@ impact: low | medium | high
 - TASK-2 → DEC-1 [validates]
 - INSIGHT-1 → DEC-1 [derives_from]
 ```
+
+This arrow-based line format is the canonical REFERENCES syntax for v2.
 
 Arrow syntax (→ or ->).  Optional relationship qualifier in `[...]`.
 

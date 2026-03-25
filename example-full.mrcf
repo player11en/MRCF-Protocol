@@ -298,21 +298,21 @@ Wire all packages together, publish extension and npm package, ship templates.
 ## Integration & Release
 
 [TASK-1]
-title: Publish VS Code extension to marketplace
+description: Publish VS Code extension to marketplace
 status: planned
 owner: dev2
 priority: high
 id: T-INT-001
 
 [TASK-2]
-title: Publish @mrcf/parser as open-source npm package
+description: Publish @mrcf/parser as open-source npm package
 status: planned
 owner: dev1
 priority: high
 id: T-INT-002
 
 [TASK-3]
-title: Create project template library (software, research, book)
+description: Create project template library (software, research, book)
 status: planned
 owner: dev3
 priority: medium
@@ -320,7 +320,7 @@ id: T-INT-003
 depends_on: T-INT-001
 
 [TASK-4]
-title: Write end-user documentation
+description: Write end-user documentation
 status: planned
 owner: dev3
 priority: medium
@@ -374,20 +374,6 @@ date: 2026-03-20
 
 # REFERENCES
 
-[REF-1]
-from_id: DEC-3
-relationship: derives_from
-to_id: INSIGHT-2
-note: The decision to keep v2 sections optional was influenced by observing how teams adopted v1 incrementally
-
-[REF-2]
-from_id: INSIGHT-3
-relationship: validates
-to_id: DEC-3
-note: Placing SUMMARY first in canonical order directly validates the value of the SUMMARY section
-
-[REF-3]
-from_id: T-INT-003
-relationship: depends_on
-to_id: T-INT-001
-note: Templates require the extension to be published first so users can test them end-to-end
+- DEC-3 -> INSIGHT-2 [derives_from]
+- INSIGHT-3 -> DEC-3 [validates]
+- T-INT-003 -> T-INT-001 [depends_on]

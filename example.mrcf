@@ -71,14 +71,14 @@ Keyboard shortcuts, dark mode, packaging, release notes.
 # TASKS
 
 [TASK-1]
-title: Define SQLite schema for tasks and projects
+description: Define SQLite schema for tasks and projects
 status: in_progress
 owner: dev1
 priority: high
 id: T-001
 
 [TASK-2]
-title: Scaffold React component tree with routing
+description: Scaffold React component tree with routing
 status: planned
 owner: dev2
 priority: medium
@@ -86,7 +86,7 @@ id: T-002
 depends_on: T-001
 
 [TASK-3]
-title: Implement task CRUD via SQLite adapter
+description: Implement task CRUD via SQLite adapter
 status: planned
 owner: dev1
 priority: high
