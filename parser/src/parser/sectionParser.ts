@@ -4,6 +4,13 @@ import type {
   MrcfTask,
   MrcfAssetReference,
   MrcfProposal,
+  MrcfSummaryBlock,
+  MrcfInsightBlock,
+  MrcfDecisionBlock,
+  MrcfReferenceLink,
+  InsightType,
+  DecisionImpact,
+  ReferenceRelationship,
 } from '../types/index';
 import { STANDARD_SECTIONS } from '../types/index';
 
@@ -49,8 +56,23 @@ function parseTasks(lines: string[], baseLineNumber: number): MrcfTask[] {
           current.priority = value;
         }
         if (key === 'id') current.id = value;
-        if (key === 'depends') {
-          current.dependsOn = value
+        if (key === 'depends' || key === 'depends_on') {
+          // Handle both `depends: T-1,T-2` and `depends_on: [TASK-1]` formats
+          const raw = value.replace(/[\[\]]/g, '');
+          current.dependsOn = raw
+            .split(',')
+            .map((v) => v.trim())
+            .filter(Boolean);
+        }
+        if (key === 'status') {
+          const validStatuses = ['planned', 'in_progress', 'done', 'failed', 'blocked'] as const;
+          if ((validStatuses as readonly string[]).includes(value)) {
+            current.status = value as typeof validStatuses[number];
+          }
+        }
+        if (key === 'related_insights') {
+          const raw = value.replace(/[\[\]]/g, '');
+          current.relatedInsights = raw
             .split(',')
             .map((v) => v.trim())
             .filter(Boolean);
@@ -64,6 +86,158 @@ function parseTasks(lines: string[], baseLineNumber: number): MrcfTask[] {
   }
 
   return tasks;
+}
+
+// ─── v2 Block parsing ─────────────────────────────────────────────────────────
+
+/**
+ * Matches the start of a named block: [BLOCK-ID]
+ * e.g. [TASK-1], [INSIGHT-2], [DEC-1]
+ */
+const BLOCK_HEADER_RE = /^\[([A-Z][A-Z0-9_-]*)\]\s*$/;
+
+/**
+ * Matches a key: value metadata line inside a block.
+ */
+const BLOCK_KV_RE = /^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/;
+
+/**
+ * Split content into named blocks delimited by [ID] headers.
+ * Returns an array of { id, lines } objects.
+ */
+function splitBlocks(lines: string[]): Array<{ id: string; lines: string[]; lineOffset: number }> {
+  const blocks: Array<{ id: string; lines: string[]; lineOffset: number }> = [];
+  let current: { id: string; lines: string[]; lineOffset: number } | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(BLOCK_HEADER_RE);
+    if (m) {
+      if (current) blocks.push(current);
+      current = { id: m[1], lines: [], lineOffset: i };
+    } else if (current) {
+      current.lines.push(lines[i]);
+    }
+  }
+  if (current) blocks.push(current);
+  return blocks;
+}
+
+/** Parse a block's lines into a key-value map (ignores blank lines). */
+function blockKV(lines: string[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of lines) {
+    if (line.trim() === '') continue;
+    const m = line.match(BLOCK_KV_RE);
+    if (m) out[m[1].toLowerCase()] = m[2].trim();
+  }
+  return out;
+}
+
+/**
+ * Parse SUMMARY section content into a MrcfSummaryBlock.
+ * Accepts simple key: value lines.
+ */
+function parseSummary(lines: string[]): MrcfSummaryBlock {
+  const summary: MrcfSummaryBlock = {};
+  for (const line of lines) {
+    if (line.trim() === '') continue;
+    const m = line.match(BLOCK_KV_RE);
+    if (!m) continue;
+    const key = m[1].toLowerCase().replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    // Map known snake_case keys to camelCase properties
+    const keyMap: Record<string, string> = {
+      current_focus: 'currentFocus',
+      main_risk: 'mainRisk',
+      stable_parts: 'stableParts',
+    };
+    const normalized = keyMap[m[1].toLowerCase()] ?? key;
+    summary[normalized] = m[2].trim();
+  }
+  return summary;
+}
+
+/**
+ * Parse INSIGHTS section content into MrcfInsightBlock[].
+ * Handles [INSIGHT-N] blocks with type, description, confidence, source.
+ */
+function parseInsights(lines: string[], baseLineNumber: number): MrcfInsightBlock[] {
+  const blocks = splitBlocks(lines);
+  return blocks.map((block) => {
+    const kv = blockKV(block.lines);
+    const rawType = kv['type'] ?? 'observation';
+    const type: InsightType =
+      rawType === 'success' || rawType === 'failure' ? rawType : 'observation';
+    const rawConf = kv['confidence'];
+    const confidence = rawConf !== undefined ? parseFloat(rawConf) : undefined;
+    return {
+      id: block.id,
+      type,
+      description: kv['description'] ?? '',
+      confidence: confidence !== undefined && !isNaN(confidence) ? confidence : undefined,
+      source: kv['source'],
+      lineNumber: baseLineNumber + block.lineOffset,
+    };
+  });
+}
+
+/**
+ * Parse DECISIONS section content into MrcfDecisionBlock[].
+ * Handles [DEC-N] blocks with choice, reason, alternatives, impact.
+ */
+function parseDecisions(lines: string[], baseLineNumber: number): MrcfDecisionBlock[] {
+  const blocks = splitBlocks(lines);
+  return blocks.map((block) => {
+    const kv = blockKV(block.lines);
+    const rawImpact = kv['impact'];
+    const impact: DecisionImpact | undefined =
+      rawImpact === 'low' || rawImpact === 'medium' || rawImpact === 'high'
+        ? rawImpact
+        : undefined;
+    return {
+      id: block.id,
+      choice: kv['choice'] ?? '',
+      reason: kv['reason'] ?? '',
+      alternatives: kv['alternatives'],
+      impact,
+      lineNumber: baseLineNumber + block.lineOffset,
+    };
+  });
+}
+
+/**
+ * Parse REFERENCES section content into MrcfReferenceLink[].
+ *
+ * Supported formats:
+ *   TASK-1 → INSIGHT-1                       (defaults to depends_on)
+ *   TASK-1 → INSIGHT-1 [depends_on]          (explicit type in brackets)
+ *   TASK-1 -> INSIGHT-1 [validates]          (ASCII arrow also accepted)
+ */
+const REF_ARROW_RE = /^([A-Z][A-Z0-9_-]*)\s*(?:→|->)\s*([A-Z][A-Z0-9_-]*)(?:\s*\[([a-z_]+)\])?/;
+const VALID_RELATIONSHIPS: ReadonlySet<string> = new Set([
+  'derives_from', 'contradicts', 'depends_on', 'validates',
+]);
+
+function parseReferences(lines: string[], baseLineNumber: number): MrcfReferenceLink[] {
+  const links: MrcfReferenceLink[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // Strip leading list marker if present (- TASK-1 → ...)
+    const stripped = line.replace(/^-\s*/, '');
+    const m = stripped.match(REF_ARROW_RE);
+    if (!m) continue;
+    const rawRel = m[3]?.toLowerCase();
+    const relationship: ReferenceRelationship =
+      rawRel && VALID_RELATIONSHIPS.has(rawRel)
+        ? (rawRel as ReferenceRelationship)
+        : 'depends_on';
+    links.push({
+      from: m[1],
+      to: m[2],
+      relationship,
+      lineNumber: baseLineNumber + i,
+    });
+  }
+  return links;
 }
 
 // ─── Asset reference parsing ──────────────────────────────────────────────────
@@ -256,6 +430,23 @@ export function parseSections(
       i++;
     }
 
+    // ── v2 structured block parsing ──────────────────────────────────────────
+    const summary = name === 'SUMMARY'
+      ? parseSummary(contentLines)
+      : undefined;
+
+    const insights = name === 'INSIGHTS'
+      ? parseInsights(contentLines, startLine + 1)
+      : undefined;
+
+    const decisions = name === 'DECISIONS'
+      ? parseDecisions(contentLines, startLine + 1)
+      : undefined;
+
+    const references = name === 'REFERENCES'
+      ? parseReferences(contentLines, startLine + 1)
+      : undefined;
+
     sections.push({
       name,
       isStandard,
@@ -266,6 +457,10 @@ export function parseSections(
       lineNumber: startLine,
       lock,
       proposals: proposals.length > 0 ? proposals : undefined,
+      summary,
+      insights: insights && insights.length > 0 ? insights : undefined,
+      decisions: decisions && decisions.length > 0 ? decisions : undefined,
+      references: references && references.length > 0 ? references : undefined,
     });
   };
 

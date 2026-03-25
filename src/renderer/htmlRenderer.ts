@@ -5,7 +5,13 @@
  * Consumes the RenderTree from renderCore and transforms it to HTML.
  */
 
-import type { MrcfDocument } from '@mrcf/parser';
+import type {
+    MrcfDocument,
+    MrcfInsightBlock,
+    MrcfDecisionBlock,
+    MrcfReferenceLink,
+    MrcfSummaryBlock,
+} from '@mrcf/parser';
 import { normalize, toAnchor } from './renderCore';
 import { markdownToHtml, escapeHtml } from './markdownTransformer';
 import { DEFAULT_THEME_CSS } from './theme';
@@ -72,7 +78,7 @@ export function renderHtml(
 
     parts.push('</head>');
     parts.push('<body>');
-    parts.push('<div class="kdoc-layout">');
+    parts.push('<div class="mrcf-layout">');
 
     // Metadata header (spans full width on desktop via CSS grid)
     parts.push(renderMetadataHeader(tree));
@@ -80,19 +86,19 @@ export function renderHtml(
     // Warnings
     if (tree.warnings.length > 0) {
         for (const warning of tree.warnings) {
-            parts.push(`<div class="kdoc-warning" role="alert">⚠️ ${escapeHtml(warning)}</div>`);
+            parts.push(`<div class="mrcf-warning" role="alert">⚠️ ${escapeHtml(warning)}</div>`);
         }
     }
 
     // Sidebar (visible on desktop ≥1024px — sticky TOC)
     if (opts.includeToc && tree.toc.length > 0) {
-        parts.push('<aside class="kdoc-sidebar" aria-label="Document navigation">');
+        parts.push('<aside class="mrcf-sidebar" aria-label="Document navigation">');
         parts.push(renderSidebarNav(tree));
         parts.push('</aside>');
     }
 
     // Main content column
-    parts.push('<div class="kdoc-main">');
+    parts.push('<div class="mrcf-main">');
 
     // Inline TOC (visible on mobile/tablet, hidden on desktop via CSS)
     if (opts.includeToc && tree.toc.length > 0) {
@@ -105,14 +111,14 @@ export function renderHtml(
     }
     parts.push('</main>');
 
-    parts.push('</div>'); // .kdoc-main
+    parts.push('</div>'); // .mrcf-main
 
     // Footer
     if (opts.includeFooter) {
         parts.push(renderFooter(tree));
     }
 
-    parts.push('</div>'); // .kdoc-layout
+    parts.push('</div>'); // .mrcf-layout
 
     // Scroll-spy: highlight active section in sidebar as user scrolls
     parts.push(renderScrollSpy());
@@ -130,9 +136,9 @@ function renderMetadataHeader(tree: RenderTree): string {
     const meta = tree.metadata;
     const parts: string[] = [];
 
-    parts.push('<header class="kdoc-header">');
+    parts.push('<header class="mrcf-header">');
     parts.push(`<h1>${escapeHtml(meta.title)}</h1>`);
-    parts.push('<div class="kdoc-header-meta">');
+    parts.push('<div class="mrcf-header-meta">');
 
     parts.push(`<span>v${escapeHtml(meta.version)}</span>`);
 
@@ -146,12 +152,12 @@ function renderMetadataHeader(tree: RenderTree): string {
         parts.push(`<span>${escapeHtml(meta.status)}</span>`);
     }
 
-    parts.push('</div>'); // .kdoc-header-meta
+    parts.push('</div>'); // .mrcf-header-meta
 
     if (meta.tags && meta.tags.length > 0) {
         parts.push('<div style="margin-top: 0.5rem;">');
         for (const tag of meta.tags) {
-            parts.push(`<span class="kdoc-tag">${escapeHtml(tag)}</span> `);
+            parts.push(`<span class="mrcf-tag">${escapeHtml(tag)}</span> `);
         }
         parts.push('</div>');
     }
@@ -168,8 +174,8 @@ function renderMetadataHeader(tree: RenderTree): string {
 function renderSidebarNav(tree: RenderTree): string {
     const parts: string[] = [];
 
-    parts.push('<nav class="kdoc-sidebar-nav" aria-label="Page sections">');
-    parts.push('<div class="kdoc-progress-bar"><div class="kdoc-progress-fill" id="kdoc-progress"></div></div>');
+    parts.push('<nav class="mrcf-sidebar-nav" aria-label="Page sections">');
+    parts.push('<div class="mrcf-progress-bar"><div class="mrcf-progress-fill" id="mrcf-progress"></div></div>');
     parts.push('<h2>Contents</h2>');
     parts.push('<ul>');
 
@@ -205,7 +211,7 @@ function renderSidebarNav(tree: RenderTree): string {
 function renderInlineToc(entries: TocEntry[]): string {
     const parts: string[] = [];
 
-    parts.push('<nav class="kdoc-toc-inline" aria-label="Table of contents">');
+    parts.push('<nav class="mrcf-toc-inline" aria-label="Table of contents">');
     parts.push('<h2>Contents</h2>');
     parts.push('<ul>');
 
@@ -247,11 +253,11 @@ function renderTocEntry(entry: TocEntry, level: number): string {
 function renderScrollSpy(): string {
     return `<script>
 (function() {
-  var links = document.querySelectorAll('.kdoc-sidebar-nav a[data-section]');
+  var links = document.querySelectorAll('.mrcf-sidebar-nav a[data-section]');
   var sections = Array.from(links).map(function(a) {
     return document.getElementById(a.getAttribute('data-section'));
   }).filter(Boolean);
-  var progress = document.getElementById('kdoc-progress');
+  var progress = document.getElementById('mrcf-progress');
 
   function update() {
     var scrollY = window.scrollY;
@@ -276,30 +282,144 @@ function renderScrollSpy(): string {
 
 /**
  * Render a section node to HTML.
+ * v2 structured sections (SUMMARY, INSIGHTS, DECISIONS, REFERENCES) get
+ * specialized renderers; all others fall through to the generic renderer.
  */
 function renderSection(node: RenderNode): string {
     const parts: string[] = [];
     const sectionClass = node.isStandard
-        ? `kdoc-section kdoc-section-${node.anchor}`
-        : 'kdoc-section';
+        ? `mrcf-section mrcf-section-${node.anchor}`
+        : 'mrcf-section';
 
     parts.push(`<section id="${node.anchor}" class="${sectionClass}">`);
     parts.push(`<h2>${escapeHtml(node.label)}</h2>`);
 
-    // Render section content as HTML
-    if (node.content.trim()) {
-        parts.push(`<div class="kdoc-section-content">`);
-        parts.push(markdownToHtml(node.content));
-        parts.push('</div>');
-    }
+    // v2 structured section renderers
+    const v2 = node.meta?.v2 as Record<string, unknown> | undefined;
 
-    // Render subsections
-    for (const child of node.children) {
-        parts.push(renderSubsection(child));
+    if (node.label === 'SUMMARY' && v2?.summary) {
+        parts.push(renderSummaryBlock(v2.summary as MrcfSummaryBlock));
+    } else if (node.label === 'INSIGHTS' && v2?.insights) {
+        parts.push(renderInsightsBlock(v2.insights as MrcfInsightBlock[]));
+    } else if (node.label === 'DECISIONS' && v2?.decisions) {
+        parts.push(renderDecisionsBlock(v2.decisions as MrcfDecisionBlock[]));
+    } else if (node.label === 'REFERENCES' && v2?.references) {
+        parts.push(renderReferencesBlock(v2.references as MrcfReferenceLink[]));
+    } else {
+        // Generic content renderer
+        if (node.content.trim()) {
+            parts.push(`<div class="mrcf-section-content">`);
+            parts.push(markdownToHtml(node.content));
+            parts.push('</div>');
+        }
+        for (const child of node.children) {
+            parts.push(renderSubsection(child));
+        }
     }
 
     parts.push('</section>');
+    return parts.join('\n');
+}
 
+/** Render SUMMARY key-value snapshot as a highlighted card. */
+function renderSummaryBlock(summary: MrcfSummaryBlock): string {
+    const rows = [
+        { key: 'current_focus', label: 'Current Focus', icon: '▶' },
+        { key: 'main_risk',     label: 'Main Risk',     icon: '⚠' },
+        { key: 'stable_parts',  label: 'Stable Parts',  icon: '✓' },
+    ];
+    const parts = ['<div class="mrcf-summary">'];
+    for (const { key, label, icon } of rows) {
+        const value = summary[key] ?? summary[key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())];
+        if (!value) continue;
+        parts.push(`<div class="mrcf-summary-row">`);
+        parts.push(`<span class="mrcf-summary-icon">${icon}</span>`);
+        parts.push(`<span class="mrcf-summary-label">${escapeHtml(label)}</span>`);
+        parts.push(`<span class="mrcf-summary-value">${escapeHtml(String(value))}</span>`);
+        parts.push('</div>');
+    }
+    // Any extra custom keys
+    for (const [k, v] of Object.entries(summary)) {
+        if (!v || ['currentFocus','mainRisk','stableParts','current_focus','main_risk','stable_parts'].includes(k)) continue;
+        parts.push(`<div class="mrcf-summary-row">`);
+        parts.push(`<span class="mrcf-summary-icon">·</span>`);
+        parts.push(`<span class="mrcf-summary-label">${escapeHtml(k)}</span>`);
+        parts.push(`<span class="mrcf-summary-value">${escapeHtml(String(v))}</span>`);
+        parts.push('</div>');
+    }
+    parts.push('</div>');
+    return parts.join('\n');
+}
+
+/** Render INSIGHTS blocks as cards with type badge and confidence bar. */
+function renderInsightsBlock(insights: MrcfInsightBlock[]): string {
+    if (insights.length === 0) return '';
+    const parts = ['<div class="mrcf-insights">'];
+    for (const insight of insights) {
+        const typeClass = `mrcf-insight-${insight.type}`;
+        parts.push(`<div class="mrcf-insight ${typeClass}">`);
+        parts.push(`<div class="mrcf-insight-header">`);
+        parts.push(`<span class="mrcf-insight-id">${escapeHtml(insight.id)}</span>`);
+        parts.push(`<span class="mrcf-insight-type">${escapeHtml(insight.type)}</span>`);
+        if (insight.source) {
+            parts.push(`<span class="mrcf-insight-source">← ${escapeHtml(insight.source)}</span>`);
+        }
+        parts.push('</div>');
+        parts.push(`<p class="mrcf-insight-description">${escapeHtml(insight.description)}</p>`);
+        if (insight.confidence !== undefined) {
+            const pct = Math.round(insight.confidence * 100);
+            parts.push(`<div class="mrcf-confidence-bar" title="Confidence: ${pct}%">`);
+            parts.push(`<div class="mrcf-confidence-fill" style="width:${pct}%"></div>`);
+            parts.push(`<span class="mrcf-confidence-label">${pct}%</span>`);
+            parts.push('</div>');
+        }
+        parts.push('</div>');
+    }
+    parts.push('</div>');
+    return parts.join('\n');
+}
+
+/** Render DECISIONS blocks as a structured list with impact badge. */
+function renderDecisionsBlock(decisions: MrcfDecisionBlock[]): string {
+    if (decisions.length === 0) return '';
+    const parts = ['<div class="mrcf-decisions">'];
+    for (const dec of decisions) {
+        const impactClass = dec.impact ? `mrcf-impact-${dec.impact}` : '';
+        parts.push(`<div class="mrcf-decision">`);
+        parts.push(`<div class="mrcf-decision-header">`);
+        parts.push(`<span class="mrcf-decision-id">${escapeHtml(dec.id)}</span>`);
+        if (dec.impact) {
+            parts.push(`<span class="mrcf-impact ${impactClass}">${escapeHtml(dec.impact)}</span>`);
+        }
+        parts.push('</div>');
+        parts.push(`<div class="mrcf-decision-choice">✓ ${escapeHtml(dec.choice)}</div>`);
+        parts.push(`<div class="mrcf-decision-reason">${escapeHtml(dec.reason)}</div>`);
+        if (dec.alternatives) {
+            parts.push(`<div class="mrcf-decision-alts">Considered: ${escapeHtml(dec.alternatives)}</div>`);
+        }
+        parts.push('</div>');
+    }
+    parts.push('</div>');
+    return parts.join('\n');
+}
+
+/** Render REFERENCES as a relationship table. */
+function renderReferencesBlock(references: MrcfReferenceLink[]): string {
+    if (references.length === 0) return '';
+    const parts = [
+        '<table class="mrcf-references">',
+        '<thead><tr><th>From</th><th>Relationship</th><th>To</th></tr></thead>',
+        '<tbody>',
+    ];
+    for (const ref of references) {
+        const relLabel = ref.relationship.replace(/_/g, ' ');
+        parts.push(`<tr>`);
+        parts.push(`<td class="mrcf-ref-id">${escapeHtml(ref.from)}</td>`);
+        parts.push(`<td class="mrcf-ref-rel">${escapeHtml(relLabel)}</td>`);
+        parts.push(`<td class="mrcf-ref-id">${escapeHtml(ref.to)}</td>`);
+        parts.push('</tr>');
+    }
+    parts.push('</tbody></table>');
     return parts.join('\n');
 }
 
@@ -310,7 +430,7 @@ function renderSubsection(node: RenderNode): string {
     const parts: string[] = [];
     const tag = `h${Math.min(node.level + 1, 6)}`;
 
-    parts.push(`<div id="${node.anchor}" class="kdoc-subsection">`);
+    parts.push(`<div id="${node.anchor}" class="mrcf-subsection">`);
     parts.push(`<${tag}>${escapeHtml(node.label)}</${tag}>`);
 
     if (node.content.trim()) {
@@ -330,7 +450,7 @@ function renderSubsection(node: RenderNode): string {
  * Render the footer.
  */
 function renderFooter(tree: RenderTree): string {
-    return `<footer class="kdoc-footer">
+    return `<footer class="mrcf-footer">
   <p>Generated from MRCF v${escapeHtml(tree.metadata.version)} — ${escapeHtml(tree.metadata.title)}</p>
 </footer>`;
 }

@@ -88,7 +88,7 @@ describe('parseSections — asset extraction', () => {
 });
 
 describe('parseSections — custom sections', () => {
-  it('accepts unknown section names as custom sections', () => {
+  it('treats DECISIONS as a standard v2 section (not custom)', () => {
     const lines = [
       '# VISION',
       'Some vision.',
@@ -98,6 +98,19 @@ describe('parseSections — custom sections', () => {
     const { sections } = parseSections(lines, 1);
     const decisions = sections.find((s) => s.name === 'DECISIONS');
     expect(decisions).toBeDefined();
-    expect(decisions!.isStandard).toBe(false);
+    expect(decisions!.isStandard).toBe(true);
+  });
+
+  it('accepts truly unknown section names as custom sections', () => {
+    const lines = [
+      '# VISION',
+      'Some vision.',
+      '# MYTOPIC',
+      'Custom section content.',
+    ];
+    const { sections } = parseSections(lines, 1);
+    const custom = sections.find((s) => s.name === 'MYTOPIC');
+    expect(custom).toBeDefined();
+    expect(custom!.isStandard).toBe(false);
   });
 });

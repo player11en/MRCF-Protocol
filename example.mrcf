@@ -1,25 +1,94 @@
 ---
-title: Demo Project
-version: 1.0
-created: 2026-03-12
-author: Team
-status: draft
+title: My Project
+version: "2.0"
+status: active
+created: 2026-03-25
+updated: 2026-03-25
+tags: [example, v2, minimal]
 ---
 
+# SUMMARY
+
+[SUMMARY]
+as_of: 2026-03-25
+phase: Planning
+health: on-track
+next: Define core data model and wire up initial API routes
+open_tasks: 3
+open_blockers: 0
+
 # VISION
-Build a small KDOC demo.
+
+Build a lightweight task management tool that lets small teams coordinate work
+without the overhead of enterprise project software.
+
+**Problem:** Existing tools are either too complex or too limited.
+**Goal:** A focused app that handles the 80% of project coordination needs.
+**Success:** Teams complete 20% more tasks per sprint within the first month.
 
 # CONTEXT
-Used for integration testing.
+
+**Audience:** Small software teams (2–10 people).
+**Constraints:** Must run as a single-page app; no server-side rendering required.
+**Stack:** TypeScript, React, Vite, SQLite (via Tauri for desktop builds).
+**Environment:** macOS and Windows primary, Linux community-supported.
 
 # STRUCTURE
-Parser, AI, renderer, extension.
+
+## Architecture
+
+Single-page application with a local-first data layer backed by SQLite.
+Syncing is optional and handled via a lightweight REST adapter.
+
+```
+src/
+  components/   — UI layer (React)
+  store/        — State management (Zustand)
+  db/           — SQLite access layer (Tauri plugin)
+  api/          — REST adapter (optional sync)
+```
+
+## Key Design Decisions
+
+- Local-first: the app works fully offline; sync is additive.
+- No authentication in v1 — single user per device.
+- Tasks are the primary entity; projects group tasks.
 
 # PLAN
-Phase 1: Validate.
-Phase 2: Render.
+
+## Phase 1 — Foundation (weeks 1–2)
+Set up repo, build system, SQLite schema, and basic CRUD.
+
+## Phase 2 — Core UI (weeks 3–5)
+Task list view, create/edit/delete flows, drag-and-drop reorder.
+
+## Phase 3 — Sync (weeks 6–8)
+Optional REST sync adapter, conflict resolution (last-write-wins).
+
+## Phase 4 — Polish & Release (weeks 9–10)
+Keyboard shortcuts, dark mode, packaging, release notes.
 
 # TASKS
-- [ ] create demo file
-- [ ] run parser
-- [ ] render html
+
+[TASK-1]
+title: Define SQLite schema for tasks and projects
+status: in_progress
+owner: dev1
+priority: high
+id: T-001
+
+[TASK-2]
+title: Scaffold React component tree with routing
+status: planned
+owner: dev2
+priority: medium
+id: T-002
+depends_on: T-001
+
+[TASK-3]
+title: Implement task CRUD via SQLite adapter
+status: planned
+owner: dev1
+priority: high
+id: T-003
+depends_on: T-001

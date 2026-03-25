@@ -7,7 +7,7 @@ import { MrcfDocument, MrcfSection } from '../types';
 import type { MrcfSubsection } from '@mrcf/parser';
 
 /**
- * Options for building LLM context from a KDOC document.
+ * Options for building LLM context from an MRCF document.
  */
 export interface ContextBuilderOptions {
     /** Which sections to include. Defaults to all. */
@@ -22,14 +22,17 @@ export interface ContextBuilderOptions {
  * Builds an optimized context string from a MRCF document
  * for use as LLM input.
  *
- * Sections are ordered in the canonical KDOC order:
- * VISION → CONTEXT → STRUCTURE → PLAN → TASKS
+ * Sections are ordered in the canonical MRCF v2 order:
+ * SUMMARY → VISION → CONTEXT → STRUCTURE → PLAN → TASKS → INSIGHTS → DECISIONS → REFERENCES
  */
 export function buildContext(
     document: MrcfDocument,
     options?: ContextBuilderOptions
 ): string {
-    const canonicalOrder = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'];
+    const canonicalOrder = [
+        'SUMMARY', 'VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS',
+        'INSIGHTS', 'DECISIONS', 'REFERENCES',
+    ];
     const includeSubsections = options?.includeSubsections ?? true;
 
     // Sort sections by canonical MRCF order, unknown sections go at the end

@@ -31,6 +31,10 @@ export interface MrcfSectionContent {
 const SECTION_HEADER_RE = /^# ([A-Z][A-Z0-9_ ]*)$/;
 const NESTED_HEADER_RE = /^(#{2,})\s+(.+)$/;
 const TASK_LINE_RE = /^(\s*)-\s\[(x| )\]\s(.*)$/i;
+/** v2 block header: [TASK-N] */
+const V2_TASK_BLOCK_RE = /^\[TASK-(\d+)\]$/;
+/** v2 key-value line inside a block: key: value */
+const V2_KV_RE = /^(\w+):\s*(.+)$/;
 
 /**
  * Returns section headers in document order with ranges.
@@ -73,11 +77,17 @@ export function getSections(
   return sections;
 }
 
-/** Standard section names per spec (for status/missing detection) */
-export const STANDARD_SECTIONS = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'] as const;
+/** All standard section names (v2: 9 sections) */
+export const STANDARD_SECTIONS = [
+  'SUMMARY', 'VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS',
+  'INSIGHTS', 'DECISIONS', 'REFERENCES',
+] as const;
+
+/** Required section names (v2: 5 core sections that must be present) */
+export const REQUIRED_SECTIONS = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'] as const;
 
 export function getRequiredSectionNames(): readonly string[] {
-  return STANDARD_SECTIONS;
+  return REQUIRED_SECTIONS;
 }
 
 /**
@@ -103,11 +113,39 @@ export function getTasks(document: vscode.TextDocument): MrcfTaskInfo[] {
   const result: MrcfTaskInfo[] = [];
   for (let i = startLine; i <= endLine; i++) {
     const line = lines[i] ?? '';
+
+    // v1 checkbox format: - [ ] task text
     const m = line.match(TASK_LINE_RE);
-    if (!m) continue;
-    const completed = m[2].toLowerCase() === 'x';
-    const textPart = m[3].trim();
-    result.push({ lineIndex: i, text: textPart, completed });
+    if (m) {
+      const completed = m[2].toLowerCase() === 'x';
+      result.push({ lineIndex: i, text: m[3].trim(), completed });
+      continue;
+    }
+
+    // v2 block format: [TASK-N] header followed by key: value lines
+    if (V2_TASK_BLOCK_RE.test(line.trim())) {
+      const blockLine = i;
+      let title = '';
+      let status = 'planned';
+      // Scan forward for key-value pairs until blank line or next block
+      let j = i + 1;
+      while (j <= endLine) {
+        const kv = (lines[j] ?? '').trim();
+        if (kv === '' || V2_TASK_BLOCK_RE.test(kv) || SECTION_HEADER_RE.test(kv)) break;
+        const kvMatch = kv.match(V2_KV_RE);
+        if (kvMatch) {
+          const key = kvMatch[1].toLowerCase();
+          if (key === 'title') title = kvMatch[2].trim();
+          if (key === 'status') status = kvMatch[2].trim().toLowerCase();
+        }
+        j++;
+      }
+      if (title) {
+        const completed = status === 'done';
+        result.push({ lineIndex: blockLine, text: title, completed });
+      }
+      i = j - 1;
+    }
   }
   return result;
 }

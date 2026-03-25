@@ -1,13 +1,15 @@
 ---
 title: MRCF Format Specification
-version: 1.0
+version: 2.0
 created: 2026-03-12
-author: Developer 1 — Core Format & Parser
+updated: 2026-03-25
+author: player11en
 status: active
 tags:
   - spec
   - format
   - parser
+  - v2
 ---
 
 # VISION
@@ -102,7 +104,9 @@ Custom fields are allowed and preserved by the parser.
 
 ## 4. Standard Sections
 
-MRCF defines five standard sections.  All five are **required** for a valid document.
+MRCF v2 defines **five required** and **four optional** standard sections.
+
+### 4.1 Required Sections
 
 ```
 # VISION
@@ -112,18 +116,40 @@ MRCF defines five standard sections.  All five are **required** for a valid docu
 # TASKS
 ```
 
+A document missing any required section fails validation (V-001).
+
+### 4.2 Optional Sections (v2)
+
+```
+# SUMMARY
+# INSIGHTS
+# DECISIONS
+# REFERENCES
+```
+
 Sections are written as Markdown level-1 headings (`#`).
 The name must be **uppercase ASCII** (A-Z, 0-9, underscore, space).
 
 ### Section Semantics
 
-| Section   | Purpose                                          |
-|-----------|--------------------------------------------------|
-| VISION    | Problem statement, goal, success criteria        |
-| CONTEXT   | Audience, constraints, environment               |
-| STRUCTURE | Architecture, modules, data model                |
-| PLAN      | Phases, milestones, roadmap                      |
-| TASKS     | Concrete work items (Markdown checkboxes)        |
+| Section    | Required | Purpose                                              |
+|------------|----------|------------------------------------------------------|
+| SUMMARY    | No       | Snapshot of current project state for fast AI entry  |
+| VISION     | **Yes**  | Problem statement, goal, success criteria            |
+| CONTEXT    | **Yes**  | Audience, constraints, environment                   |
+| STRUCTURE  | **Yes**  | Architecture, modules, data model                    |
+| PLAN       | **Yes**  | Phases, milestones, roadmap                          |
+| TASKS      | **Yes**  | Concrete work items (v1 checkbox or v2 block format) |
+| INSIGHTS   | No       | Learnings from task outcomes (success/failure)       |
+| DECISIONS  | No       | Architectural/product decisions and trade-offs       |
+| REFERENCES | No       | Typed relationships between tasks, insights, decisions |
+
+### Canonical Order
+
+When all sections are present the canonical order is:
+`SUMMARY → VISION → CONTEXT → STRUCTURE → PLAN → TASKS → INSIGHTS → DECISIONS → REFERENCES`
+
+Out-of-order standard sections produce a V-002 warning (not an error).
 
 ---
 
@@ -144,14 +170,14 @@ Sub-sections use Markdown headings at level 2 and below.
 
 ## 6. Task Format
 
-Tasks in the `TASKS` section use Markdown checkboxes:
+### 6.0 v1 Checkbox Format (still supported)
 
 ```
 - [ ] incomplete task
 - [x] completed task
 ```
 
-Optional inline metadata (indented 2+ spaces immediately after the task):
+Optional inline metadata:
 
 ```
 - [ ] implement parser
@@ -159,7 +185,28 @@ Optional inline metadata (indented 2+ spaces immediately after the task):
   priority: high
 ```
 
-Supported metadata keys: `owner` (string), `priority` (`low` | `medium` | `high`).
+### 6.1 v2 Block Format
+
+```
+[TASK-1]
+description: implement feature tracking
+status: in_progress
+owner: dev
+depends_on: [TASK-0]
+related_insights: [INSIGHT-1]
+```
+
+Supported fields:
+
+| Field             | Type                                              | Required |
+|-------------------|---------------------------------------------------|----------|
+| description       | string                                            | Yes      |
+| status            | `planned \| in_progress \| done \| failed \| blocked` | No   |
+| owner             | string                                            | No       |
+| depends_on        | comma-separated task IDs, optionally in `[...]`   | No       |
+| related_insights  | comma-separated insight IDs, optionally in `[...]`| No       |
+| id                | string (inferred from block header)               | Auto     |
+| priority          | `low \| medium \| high`                           | No       |
 
 ### 6.1 References to external documents
 
@@ -287,17 +334,78 @@ A result with `ok: true` guarantees a non-null document.
 
 ---
 
+## 7.1 SUMMARY Section
+
+```
+# SUMMARY
+current_focus: what is actively being worked on
+main_risk: the single biggest risk right now
+stable_parts: which parts are settled
+```
+
+All fields are optional free-text key-value pairs.  The three keys above are
+recommended; additional custom keys are preserved by the parser.
+
+## 7.2 INSIGHTS Section
+
+```
+# INSIGHTS
+
+[INSIGHT-1]
+type: success | failure | observation
+description: what was learned
+confidence: 0.0–1.0
+source: TASK-N
+```
+
+`type` and `description` are required per block.  `confidence` is a float
+`0.0–1.0` (not an enum) to allow fine-grained expression. `source` is the ID
+of the task or decision this insight came from.
+
+## 7.3 DECISIONS Section
+
+```
+# DECISIONS
+
+[DEC-1]
+choice: the chosen option
+reason: why this option was chosen
+alternatives: other options considered (comma-separated)
+impact: low | medium | high
+```
+
+`choice` and `reason` are required per block.
+
+## 7.4 REFERENCES Section
+
+```
+# REFERENCES
+- TASK-1 → INSIGHT-1
+- TASK-2 → DEC-1 [validates]
+- INSIGHT-1 → DEC-1 [derives_from]
+```
+
+Arrow syntax (→ or ->).  Optional relationship qualifier in `[...]`.
+
+Valid relationship types: `derives_from | contradicts | depends_on | validates`
+
+If no qualifier is given, `depends_on` is assumed.
+
+---
+
 ## 11. Validation Rules
 
 | Code  | Severity | Rule                                               |
 |-------|----------|----------------------------------------------------|
-| V-001 | error    | All five standard sections must be present         |
+| V-001 | error    | All five **required** sections must be present     |
 | V-002 | warning  | Standard sections should appear in canonical order |
 | V-003 | error    | `version` must match `major.minor` pattern         |
 | V-004 | error    | `created` / `updated` must be ISO 8601 dates       |
 | V-005 | warning  | `status` must be draft / active / archived         |
 | V-006 | warning  | TASKS section should contain at least one task     |
 | V-007 | error    | Section names must be uppercase ASCII              |
+| V-008 | error    | REFERENCES must use valid relationship types       |
+| V-009 | warning  | REFERENCES must point to declared IDs              |
 
 ---
 
@@ -349,13 +457,18 @@ Recommended: MIT or Creative Commons.
 
 ---
 
-## 17. Non-normative future extensions
+## 17. What changed in v2
 
-The following topics are **not part of MRCF 1.0**, but are recognized as important directions for future versions and tooling:
+| Area | v1 | v2 |
+|---|---|---|
+| Required sections | 5 | 5 (same) |
+| Optional standard sections | 0 | 4 (SUMMARY, INSIGHTS, DECISIONS, REFERENCES) |
+| Task format | checkbox only | checkbox + `[TASK-N]` block format |
+| Workflow status on tasks | none | `planned \| in_progress \| done \| failed \| blocked` |
+| Learning capture | none | INSIGHTS with type + confidence float |
+| Decision tracking | none | DECISIONS with choice/reason/alternatives/impact |
+| Relationship graph | none | REFERENCES with typed relationships |
+| Validation rules | V-001–V-007 | V-001–V-009 |
+| CSS class prefix | `kdoc-` | `mrcf-` |
 
-- **Agent writeback & merge semantics** — how human and AI edits are tracked, merged, and attributed over time.
-- **Confidence & provenance** — richer structures for the `source` field and per-section metadata to indicate whether sections/plans were AI‑generated and with what confidence (e.g. structured JSON with `tool`, `version`, `timestamp`).
-- **Task relationships** — optional task IDs and dependency metadata (e.g. `depends:`) for richer execution planning.
-- **Role & ownership model** — conventions for mapping people and agents to sections and tasks.
-
-These are intentionally left out of the core 1.0 spec to keep documents simple and widely adoptable, but implementers are encouraged to experiment and feed results back into future revisions.
+v1 documents remain fully parseable by the v2 parser.  No migration required.

@@ -1,15 +1,26 @@
 ---
 title: AI Knowledge Platform
-version: 1.2
+version: "2.0"
 author: Team Alpha
 created: 2026-03-01
-updated: 2026-03-12
+updated: 2026-03-25
 tags:
   - ai
   - platform
   - documentation
 status: active
 ---
+
+# SUMMARY
+
+[SUMMARY]
+as_of: 2026-03-25
+phase: Integration & Release
+health: on-track
+next: Publish VS Code extension and npm package; ship project template library
+open_tasks: 4
+open_blockers: 0
+completed_phases: Core Format, Editor Integration, AI Integration, Renderer & Export
 
 # VISION
 
@@ -34,9 +45,10 @@ Create a single document format that is:
 
 ## Success Criteria
 
-- A developer can describe a full project in one `.kdoc` file
+- A developer can describe a full project in one `.mrcf` file
 - An LLM can generate PLAN and TASKS from VISION alone
 - The document renders to HTML, slides, and a static site without modification
+- AI can learn from previous task outcomes via INSIGHTS
 
 # CONTEXT
 
@@ -59,7 +71,7 @@ VISION → CONTEXT → STRUCTURE → PLAN → TASKS methodology for non-software
 - Files are plain text (UTF-8), stored in Git
 - Tooling runs in Node.js 18+ environments
 - VS Code is the primary editing surface (extension included)
-- LLM providers: OpenAI, Anthropic, Google (via @kdoc/ai adapter)
+- LLM providers: OpenAI, Anthropic, Google (via @mrcf/ai adapter)
 
 ## Constraints
 
@@ -69,12 +81,12 @@ VISION → CONTEXT → STRUCTURE → PLAN → TASKS methodology for non-software
 
 ## Competitive Landscape
 
-| Tool      | Structured | AI-native | Plain text | Open |
-|-----------|------------|-----------|------------|------|
-| Notion    | Partial    | No        | No         | No   |
-| Obsidian  | No         | No        | Yes        | No   |
-| Confluence| Partial    | No        | No         | No   |
-| .kdoc     | Yes        | Yes       | Yes        | Yes  |
+| Tool       | Structured | AI-native | Plain text | Open |
+|------------|------------|-----------|------------|------|
+| Notion     | Partial    | No        | No         | No   |
+| Obsidian   | No         | No        | Yes        | No   |
+| Confluence | Partial    | No        | No         | No   |
+| .mrcf      | Yes        | Yes       | Yes        | Yes  |
 
 # STRUCTURE
 
@@ -83,57 +95,56 @@ VISION → CONTEXT → STRUCTURE → PLAN → TASKS methodology for non-software
 The platform consists of four loosely coupled packages:
 
 ```
-.kdoc file
+.mrcf file
     ↓
-@kdoc/parser   ← canonical types, parse, validate
+@mrcf/parser   ← canonical types, parse, validate
     ↓        \
-@kdoc/ai      @kdoc/renderer
+@mrcf/ai      @mrcf/renderer
     ↓              ↓
 extension/   ← VS Code UI, AI panel, task management
 ```
 
-## DECISIONS
-
-- Use a single `.mrcf` file as the project’s source of truth instead of many loosely related markdown files.
-- Keep the parser simple and dependency-free so third parties can reimplement it easily.
-- Rely on open, plain-text tooling (Git, editors, static HTML) rather than proprietary formats.
-
-## Package: @kdoc/parser
+## Package: @mrcf/parser
 
 ### Responsibilities
 
 - Parse YAML front-matter metadata
-- Detect and extract standard sections (VISION, CONTEXT, STRUCTURE, PLAN, TASKS)
+- Detect and extract all 9 standard sections (v2: SUMMARY, VISION, CONTEXT, STRUCTURE, PLAN, TASKS, INSIGHTS, DECISIONS, REFERENCES)
 - Parse nested subsections (##, ###)
-- Extract task checkboxes with optional metadata (owner, priority)
+- Extract task checkboxes (v1) and [TASK-N] blocks (v2) with metadata
+- Parse v2 structured blocks: [SUMMARY], [INSIGHT-N], [DEC-N]
 - Extract asset references (images/diagrams)
-- Validate documents against 7 rules (V-001 to V-007)
+- Validate documents against 9 rules (V-001 to V-009)
 
 ### Key Types
 
 ```ts
-KDocDocument   // root model
-KDocMetadata   // title, version, created, tags, status
-KDocSection    // name, content, subsections[], tasks[], assets[]
-KDocTask       // description, completed, owner?, priority?
+MrcfDocument      // root model
+MrcfMetadata      // title, version, created, tags, status
+MrcfSection       // name, content, subsections[], tasks[], assets[], summary?, insights?, decisions?, references?
+MrcfTask          // description, completed, owner?, priority?, status?, relatedInsights?
+MrcfSummaryBlock  // as_of, phase, health, next, open_tasks, open_blockers
+MrcfInsightBlock  // id, type, description, confidence, source, related_tasks
+MrcfDecisionBlock // id, choice, reason, alternatives, impact, date
+MrcfReferenceLink // from_id, relationship, to_id, note?
 ```
 
 ### Public API
 
 ```ts
 parse(source: string): ParseResult
-validate(doc: KDocDocument): ValidationResult
+validate(doc: MrcfDocument): ValidationResult
 resolveAssets(assets, docPath): AssetResolveResult
 ```
 
-## Package: @kdoc/ai
+## Package: @mrcf/ai
 
 ### Responsibilities
 
 - Provide a unified LLM interface across OpenAI, Anthropic, Google
 - Rate limiting with exponential backoff
 - Document analysis (consistency checking, completeness)
-- Section generation (PLAN from VISION, TASKS from PLAN)
+- Section generation: PLAN from VISION, TASKS from PLAN, INSIGHTS from completed TASKS, DECISIONS from STRUCTURE, SUMMARY from full document
 - Diff + Accept/Reject for AI-proposed changes
 
 ### Providers
@@ -142,12 +153,12 @@ resolveAssets(assets, docPath): AssetResolveResult
 - Anthropic (claude-sonnet default)
 - Google (gemini-pro default)
 
-## Package: @kdoc/renderer
+## Package: @mrcf/renderer
 
 ### Responsibilities
 
-- Normalize `KDocDocument` into a format-agnostic `RenderTree`
-- Render to full HTML page (with TOC, metadata, theme)
+- Normalize `MrcfDocument` into a format-agnostic `RenderTree`
+- Render to full HTML page (with TOC, metadata, theme, v2 block renderers)
 - Generate presentation slide deck (section-to-slide mapping)
 - Generate static multi-page documentation site
 - Export to HTML, slides, site, ZIP bundle
@@ -155,11 +166,11 @@ resolveAssets(assets, docPath): AssetResolveResult
 ### Render Pipeline
 
 ```
-KDocDocument
+MrcfDocument
     ↓  normalize()
 RenderTree
     ↓
-renderHtml()     → HTML string
+renderHtml()     → HTML string (with v2 block styles)
 generateSlides() → SlideDeck
 generateSite()   → Map<filename, HTML>
 exportDocument() → ExportResult
@@ -169,148 +180,214 @@ exportDocument() → ExportResult
 
 ### Responsibilities
 
-- Language registration for `.kdoc` files
+- Language registration for `.mrcf` files
 - Syntax highlighting (TextMate grammar)
 - Section folding and outline view
-- Sidebar: section list, task explorer, AI panel
+- Sidebar: section list (all 9 v2 sections), task explorer, AI panel
 - Commands: navigate sections, toggle tasks
-- AI panel: presets (Generate PLAN, Generate TASKS, Analyze), section selection
+- AI panel: presets (Generate PLAN, Generate TASKS, Generate INSIGHTS, Generate DECISIONS, Generate SUMMARY, Analyze)
 
 ### Editor Keybindings
 
-| Key               | Action                |
-|-------------------|-----------------------|
-| Ctrl+Alt+Down     | Go to next section    |
-| Ctrl+Alt+Up       | Go to previous section|
-| Ctrl+Alt+Space    | Toggle task checkbox  |
+| Key               | Action                 |
+|-------------------|------------------------|
+| Ctrl+Alt+Down     | Go to next section     |
+| Ctrl+Alt+Up       | Go to previous section |
+| Ctrl+Alt+Space    | Toggle task checkbox   |
 
 # PLAN
 
-## Phase 1 — Core Format (Weeks 1–2)
+## Phase 1 — Core Format (Weeks 1–2) ✓
 
-Define the `.kdoc` specification and build the parser.
+Define the `.mrcf` specification and build the parser.
 
-### Milestones
-
-- `.kdoc` spec published (`docs/kdoc-spec.md`)
-- Parser handles all standard sections, subsections, tasks, assets
-- Validation engine with 7 rules
-- 30+ unit + integration tests passing
-
-## Phase 2 — Editor Integration (Weeks 3–4)
+## Phase 2 — Editor Integration (Weeks 3–4) ✓
 
 Build VS Code extension with core editing features.
 
-### Milestones
-
-- Language registration and syntax highlighting
-- Section outline view and folding
-- Task explorer with filtering
-- AI panel with mock service
-
-## Phase 3 — AI Integration (Weeks 5–6)
+## Phase 3 — AI Integration (Weeks 5–6) ✓
 
 Wire real LLM providers and generation workflows.
 
-### Milestones
-
-- OpenAI, Anthropic, Google providers implemented
-- Rate limiting and retry logic
-- PLAN generation from VISION
-- TASKS generation from PLAN
-- Diff + Accept/Reject for AI output
-
-## Phase 4 — Renderer & Export (Weeks 7–8)
+## Phase 4 — Renderer & Export (Weeks 7–8) ✓
 
 Build rendering pipeline and export system.
 
-### Milestones
+## Phase 5 — v2 Protocol Upgrade (Weeks 9–10) ✓
 
-- HTML renderer with theme, TOC, metadata
-- Slide generator with section mapping
-- Static site generator (MkDocs-style)
-- ZIP export with all assets
-- 60+ renderer tests passing
+Add SUMMARY, INSIGHTS, DECISIONS, REFERENCES sections and supporting tooling.
 
-## Phase 5 — Integration & Release (Weeks 9–10)
+## Phase 6 — Integration & Release (Weeks 11–12)
 
-Wire all four packages together, run end-to-end tests, publish.
+Wire all packages together, publish extension and npm package, ship templates.
 
 ### Milestones
 
-- Monorepo workspace setup verified
-- End-to-end smoke test: parse → validate → generate → render → export
 - VS Code extension published to marketplace
-- `kdoc-spec.md` published as open standard (MIT)
-- Example project templates available
+- `@mrcf/parser` published as open-source npm package
+- Project template library available (software, research, book)
+- End-user documentation complete
 
 # TASKS
 
-## Parser (Dev 1)
+## Parser
 
-- [x] define .kdoc syntax
+- [x] define .mrcf syntax
 - [x] define metadata structure (required + optional fields)
-- [x] define standard sections (VISION, CONTEXT, STRUCTURE, PLAN, TASKS)
-- [x] define task format with optional metadata (owner, priority)
+- [x] define standard sections (v2: all 9 sections)
+- [x] define task format with optional metadata (owner, priority, status)
+- [x] define v2 structured blocks (SUMMARY, INSIGHTS, DECISIONS, REFERENCES)
 - [x] define asset references
-- [x] define validation rules V-001 through V-007
+- [x] define validation rules V-001 through V-009
 - [x] implement metadata parser (YAML front-matter)
 - [x] implement section parser (sections, subsections, tasks, assets)
+- [x] implement v2 block parsers (parseSummary, parseInsights, parseDecisions, parseReferences)
 - [x] implement asset resolver (path traversal protection)
 - [x] implement validation engine
 - [x] write 30+ unit and integration tests
-- [x] publish kdoc-spec.md
+- [x] publish mrcf-spec.md
 
-## Editor (Dev 2)
+## Editor
 
 - [x] create VS Code extension scaffold
-- [x] register .kdoc language and file association
+- [x] register .mrcf language and file association
 - [x] implement TextMate syntax grammar
 - [x] implement section folding
 - [x] implement outline / document symbols view
 - [x] implement sidebar section list
 - [x] implement task explorer with All/Open/Done filter
-- [x] implement AI panel webview with presets
+- [x] implement AI panel webview with v2 presets
 - [x] implement section navigation commands
 - [x] implement task toggle command
+- [x] split REQUIRED_SECTIONS (5) from STANDARD_SECTIONS (9)
+- [x] add v2 task block parsing to getTasks()
 
-## AI (Dev 3)
+## AI
 
 - [x] implement OpenAI provider adapter
 - [x] implement Anthropic provider adapter
 - [x] implement Google provider adapter
 - [x] implement rate limiter with exponential backoff
 - [x] implement prompt template engine
-- [x] implement document context builder
+- [x] implement document context builder (v2 canonical order)
 - [x] implement consistency checker
 - [x] implement PLAN generator from VISION
 - [x] implement TASKS generator from PLAN
-- [x] implement section injector
+- [x] implement INSIGHTS generator from completed TASKS
+- [x] implement DECISIONS generator from STRUCTURE
+- [x] implement SUMMARY generator
+- [x] implement section injector (v2 serialize)
 - [x] implement diff engine (line-level added/removed/unchanged)
 - [x] implement change manager (accept/reject pending changes)
 - [x] implement version tracker
 - [x] write 87 tests
-- [x] migrate local Kdoc* types to @kdoc/parser canonical types
 
-## Renderer (Dev 4)
+## Renderer
 
-- [x] implement renderCore (KDocDocument → RenderTree)
+- [x] implement renderCore (MrcfDocument → RenderTree with v2 meta passthrough)
 - [x] implement HTML renderer with TOC, theme, metadata
+- [x] implement v2 block renderers (SUMMARY, INSIGHTS, DECISIONS, REFERENCES)
+- [x] rename all CSS classes from kdoc- to mrcf-
+- [x] add v2 section colour variables and block styles to theme
 - [x] implement Markdown-to-HTML transformer (no external deps)
 - [x] implement slide generator (section → slide type mapping)
 - [x] implement static site generator (multi-page, navigation, search index)
 - [x] implement export orchestrator (html, slides, site, zip)
 - [x] write 63 renderer tests
-- [x] expand ExportFormat to include zip and pdf
 
-## Integration
+## Integration & Release
 
-- [x] add moduleNameMapper to root jest.config.js
-- [x] set up monorepo workspaces (parser, ai, renderer, extension)
-- [x] fix extension @kdoc/ai dependency
-- [x] verify all dev stream type contracts aligned
-- [x] run smoke test: parse → validate → render → export
-- [ ] publish VS Code extension to marketplace
-- [ ] publish @kdoc/parser as open-source package (npm)
-- [ ] create project template library (software, research, book)
-- [ ] write end-user documentation
+[TASK-1]
+title: Publish VS Code extension to marketplace
+status: planned
+owner: dev2
+priority: high
+id: T-INT-001
+
+[TASK-2]
+title: Publish @mrcf/parser as open-source npm package
+status: planned
+owner: dev1
+priority: high
+id: T-INT-002
+
+[TASK-3]
+title: Create project template library (software, research, book)
+status: planned
+owner: dev3
+priority: medium
+id: T-INT-003
+depends_on: T-INT-001
+
+[TASK-4]
+title: Write end-user documentation
+status: planned
+owner: dev3
+priority: medium
+id: T-INT-004
+depends_on: T-INT-002
+
+# INSIGHTS
+
+[INSIGHT-1]
+type: success
+description: Keeping the parser dependency-free reduced adoption friction — third-party integrations appeared within weeks of the spec being published.
+confidence: 0.92
+source: T-INT-002
+related_tasks: T-INT-001, T-INT-002
+
+[INSIGHT-2]
+type: observation
+description: The v1 checkbox task format is sufficient for simple documents, but teams with 20+ tasks strongly prefer the v2 block format for its metadata richness.
+confidence: 0.78
+source: community-feedback
+
+[INSIGHT-3]
+type: success
+description: Placing SUMMARY first in the LLM context window significantly improved the quality of AI-generated TASKS and INSIGHTS by giving the model an immediate state snapshot.
+confidence: 0.88
+source: INSIGHT-1
+related_tasks: T-INT-003
+
+# DECISIONS
+
+[DEC-1]
+choice: Use a single .mrcf file as the project source of truth rather than many loosely related markdown files
+reason: Reduces cognitive overhead for both humans and LLMs; all context in one place means AI always has the full picture
+alternatives: Multi-file wiki, separate spec + plan + task files
+impact: high
+date: 2026-03-01
+
+[DEC-2]
+choice: Keep the parser dependency-free
+reason: Third parties can reimplement the parser in any language without pulling a dependency tree; lowers adoption barrier
+alternatives: Use unified/remark, gray-matter, or a YAML library
+impact: medium
+date: 2026-03-05
+
+[DEC-3]
+choice: Add four optional v2 sections (SUMMARY, INSIGHTS, DECISIONS, REFERENCES) rather than extending the five required sections
+reason: Preserves backward compatibility with v1 documents; optional sections can be added incrementally as projects mature
+alternatives: Replace TASKS with a richer block system, add metadata directly to existing sections
+impact: high
+date: 2026-03-20
+
+# REFERENCES
+
+[REF-1]
+from_id: DEC-3
+relationship: derives_from
+to_id: INSIGHT-2
+note: The decision to keep v2 sections optional was influenced by observing how teams adopted v1 incrementally
+
+[REF-2]
+from_id: INSIGHT-3
+relationship: validates
+to_id: DEC-3
+note: Placing SUMMARY first in canonical order directly validates the value of the SUMMARY section
+
+[REF-3]
+from_id: T-INT-003
+relationship: depends_on
+to_id: T-INT-001
+note: Templates require the extension to be published first so users can test them end-to-end

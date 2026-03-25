@@ -86,7 +86,7 @@ describe('renderHtml', () => {
         const doc = makeDoc();
         const html = renderHtml(doc);
 
-        expect(html).toContain('kdoc-tag');
+        expect(html).toContain('mrcf-tag');
         expect(html).toContain('test');
         expect(html).toContain('docs');
     });
@@ -106,18 +106,18 @@ describe('renderHtml', () => {
         const doc = makeDoc();
         const html = renderHtml(doc);
 
-        expect(html).toContain('kdoc-section-vision');
-        expect(html).toContain('kdoc-section-context');
-        expect(html).toContain('kdoc-section-structure');
-        expect(html).toContain('kdoc-section-plan');
-        expect(html).toContain('kdoc-section-tasks');
+        expect(html).toContain('mrcf-section-vision');
+        expect(html).toContain('mrcf-section-context');
+        expect(html).toContain('mrcf-section-structure');
+        expect(html).toContain('mrcf-section-plan');
+        expect(html).toContain('mrcf-section-tasks');
     });
 
     it('includes the table of contents', () => {
         const doc = makeDoc();
         const html = renderHtml(doc);
 
-        expect(html).toContain('kdoc-toc');
+        expect(html).toContain('mrcf-toc');
         expect(html).toContain('href="#vision"');
         expect(html).toContain('href="#tasks"');
     });
@@ -133,7 +133,7 @@ describe('renderHtml', () => {
         const doc = makeDoc();
         const html = renderHtml(doc, { includeTheme: true });
 
-        expect(html).toContain('--kdoc-color-vision');
+        expect(html).toContain('--mrcf-color-vision');
         expect(html).toContain('<style>');
     });
 
@@ -148,14 +148,14 @@ describe('renderHtml', () => {
         const doc = makeDoc();
         const html = renderHtml(doc, { includeToc: false });
 
-        expect(html).not.toContain('<nav class="kdoc-toc"');
+        expect(html).not.toContain('<nav class="mrcf-toc"');
     });
 
     it('includes footer by default', () => {
         const doc = makeDoc();
         const html = renderHtml(doc);
 
-        expect(html).toContain('kdoc-footer');
+        expect(html).toContain('mrcf-footer');
         expect(html).toContain('Generated from MRCF');
     });
 
@@ -173,7 +173,7 @@ describe('renderHtml', () => {
         doc.sectionIndex = new Map(doc.sections.map((s) => [s.name, s]));
         const html = renderHtml(doc);
 
-        expect(html).toContain('kdoc-warning');
+        expect(html).toContain('mrcf-warning');
         expect(html).toContain('Missing required section');
     });
 

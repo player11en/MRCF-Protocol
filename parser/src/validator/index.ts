@@ -3,17 +3,18 @@ import type {
   ValidationIssue,
   ValidationResult,
 } from '../types/index';
-import { STANDARD_SECTIONS } from '../types/index';
+import { STANDARD_SECTIONS, REQUIRED_SECTIONS } from '../types/index';
 
 // ─── Individual rule runners ──────────────────────────────────────────────────
 
 /**
- * RULE V-001: All five standard sections must be present.
- * Spec §13: A valid MRCF document must contain VISION, CONTEXT, STRUCTURE, PLAN, TASKS.
+ * RULE V-001: All five required sections must be present.
+ * v2: VISION, CONTEXT, STRUCTURE, PLAN, TASKS are required.
+ * SUMMARY, INSIGHTS, DECISIONS, REFERENCES are optional.
  */
 function checkRequiredSections(doc: MrcfDocument): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
-  for (const name of STANDARD_SECTIONS) {
+  for (const name of REQUIRED_SECTIONS) {
     if (!doc.sectionIndex.has(name)) {
       issues.push({
         severity: 'error',
@@ -153,6 +154,88 @@ function checkSectionNameCasing(doc: MrcfDocument): ValidationIssue[] {
   return issues;
 }
 
+/**
+ * RULE V-008: REFERENCES section must only use valid relationship types.
+ * Valid: derives_from | contradicts | depends_on | validates
+ * (Arrow syntax without qualifier defaults to depends_on — no error.)
+ */
+function checkReferenceRelationships(doc: MrcfDocument): ValidationIssue[] {
+  const refsSection = doc.sectionIndex.get('REFERENCES');
+  if (!refsSection?.references) return [];
+
+  const issues: ValidationIssue[] = [];
+  const valid = new Set(['derives_from', 'contradicts', 'depends_on', 'validates']);
+
+  for (const ref of refsSection.references) {
+    if (!valid.has(ref.relationship)) {
+      issues.push({
+        severity: 'error',
+        code: 'V-008',
+        message: `Unknown reference relationship "${ref.relationship}". Must be derives_from | contradicts | depends_on | validates`,
+        line: ref.lineNumber,
+      });
+    }
+  }
+  return issues;
+}
+
+/**
+ * RULE V-009: REFERENCES must only point to IDs that exist in the document.
+ * Collects all declared IDs from TASKS, INSIGHTS, DECISIONS, then validates
+ * that every from/to in REFERENCES resolves to a known ID.
+ */
+function checkReferenceIntegrity(doc: MrcfDocument): ValidationIssue[] {
+  const refsSection = doc.sectionIndex.get('REFERENCES');
+  if (!refsSection?.references || refsSection.references.length === 0) return [];
+
+  const issues: ValidationIssue[] = [];
+
+  // Collect all declared IDs in the document
+  const knownIds = new Set<string>();
+
+  const tasksSection = doc.sectionIndex.get('TASKS');
+  if (tasksSection) {
+    for (const task of tasksSection.tasks) {
+      if (task.id) knownIds.add(task.id);
+    }
+  }
+
+  const insightsSection = doc.sectionIndex.get('INSIGHTS');
+  if (insightsSection?.insights) {
+    for (const insight of insightsSection.insights) {
+      knownIds.add(insight.id);
+    }
+  }
+
+  const decisionsSection = doc.sectionIndex.get('DECISIONS');
+  if (decisionsSection?.decisions) {
+    for (const decision of decisionsSection.decisions) {
+      knownIds.add(decision.id);
+    }
+  }
+
+  for (const ref of refsSection.references) {
+    if (!knownIds.has(ref.from)) {
+      issues.push({
+        severity: 'warning',
+        code: 'V-009',
+        message: `Reference source "${ref.from}" does not match any known task, insight, or decision ID`,
+        line: ref.lineNumber,
+      });
+    }
+    if (!knownIds.has(ref.to)) {
+      issues.push({
+        severity: 'warning',
+        code: 'V-009',
+        message: `Reference target "${ref.to}" does not match any known task, insight, or decision ID`,
+        line: ref.lineNumber,
+      });
+    }
+  }
+
+  return issues;
+}
+
 // ─── Validation Engine ────────────────────────────────────────────────────────
 
 const RULES = [
@@ -163,6 +246,8 @@ const RULES = [
   checkMetadataStatus,
   checkTasksNotEmpty,
   checkSectionNameCasing,
+  checkReferenceRelationships,
+  checkReferenceIntegrity,
 ] as const;
 
 /**

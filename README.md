@@ -2,11 +2,11 @@
 
 **Machine-Readable Context Format — The AI-native methodology and document standard for structured work.**
 
-MRCF is **first a project methodology, then a file format**. The 5-section structure gives humans and AI a shared way to think about any project; the `.mrcf` plain‑text format makes that structure easy to parse, version, and render.
+MRCF is **first a project methodology, then a file format**. The structured section model gives humans and AI a shared way to think about any project; the `.mrcf` plain‑text format makes that structure easy to parse, version, and render.
 
-You can apply the methodology in **plain Markdown** (using the same headings), and use `.mrcf` when you want tighter tooling and validation.
+You can apply the methodology in **plain Markdown** (using the same headings), and use `.mrcf` when you want tighter tooling, validation, and the v2 memory layer features (INSIGHTS, DECISIONS, SUMMARY).
 
-Think of it as: **Markdown is to text. Git is to code. MRCF is a shared interface for humans and AI agents.**
+Think of it as: **Markdown is to text. Git is to code. MRCF is a shared memory layer for humans and AI agents.**
 
 ---
 
@@ -15,11 +15,20 @@ Think of it as: **Markdown is to text. Git is to code. MRCF is a shared interfac
 ```mrcf
 ---
 title: My Project
-version: 1.0
-created: 2026-03-12
+version: "2.0"
+created: 2026-03-25
 author: Your Name
-status: draft
+status: active
 ---
+
+# SUMMARY
+
+[SUMMARY]
+as_of: 2026-03-25
+phase: Development
+health: on-track
+next: Build ingestion pipeline
+open_tasks: 2
 
 # VISION
 Build a knowledge platform for research teams.
@@ -39,26 +48,49 @@ Phase 2: API layer (weeks 3–4)
 Phase 3: UI + export (weeks 5–6)
 
 # TASKS
-- [x] Define schema
-- [ ] Build ingestion pipeline
-- [ ] Write API docs
+
+[TASK-1]
+title: Build ingestion pipeline
+status: in_progress
+owner: dev1
+priority: high
+id: T-001
+
+[TASK-2]
+title: Write API docs
+status: planned
+owner: dev2
+priority: medium
+id: T-002
+depends_on: T-001
 ```
 
-That's the whole format. Open it in any text editor. Commit it to Git. Let an LLM read it and immediately know what to generate next.
+Open it in any text editor. Commit it to Git. Let an LLM read it and immediately know the project state — and write INSIGHTS when tasks complete so the next session picks up where you left off.
 
 ---
 
-## The 5-section methodology (method first, format second)
+## Section model (v2: 5 required + 4 optional)
+
+### Required sections (must be present)
 
 | Section | Purpose |
 |---------|---------|
 | **VISION** | Why this exists. The problem, goal, and success criteria. |
-| **CONTEXT** | Who it's for. Audience, constraints, technical environment. |
+| **CONTEXT** | Who it’s for. Audience, constraints, technical environment. |
 | **STRUCTURE** | How it works. Architecture, modules, design decisions. |
 | **PLAN** | How it gets done. Phases, milestones, roadmap. |
-| **TASKS** | What's next. Markdown checkboxes with optional owner + priority. |
+| **TASKS** | What’s next. v1 checkboxes or v2 `[TASK-N]` blocks with status, owner, priority. |
 
-This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the format (whether `.mrcf` or disciplined `.md`) lets LLMs act on it automatically.
+### Optional sections (v2 memory layer)
+
+| Section | Purpose |
+|---------|---------|
+| **SUMMARY** | Snapshot of current state — phase, health, next action, open tasks. AI reads this first on re-entry. |
+| **INSIGHTS** | Learnings from completed tasks — success, failure, or observation, with confidence score. |
+| **DECISIONS** | Architectural and process decisions with rationale and alternatives considered. |
+| **REFERENCES** | Typed links between TASKS, INSIGHTS, and DECISIONS (`derives_from`, `contradicts`, `depends_on`, `validates`). |
+
+This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the v2 optional sections turn a project document into a **persistent memory layer** that AI agents improve on every session.
 
 ---
 
@@ -197,13 +229,18 @@ The `@mrcf/parser` automatically resolves these local paths, allowing the render
 
 ## Human-AI Workflow
 
-MRCF is designed for an iterative loop where humans set the strategy and AI handles the execution:
+MRCF is designed for an iterative loop where humans set the strategy and AI maintains a persistent memory layer:
 
-1. **Human** writes the `# VISION` and `# CONTEXT` in a `.mrcf` file.
-2. **AI** reads the vision and generates the `# PLAN` and `# TASKS`.
-3. **Human** reviews the plan, adds `# ASSETS`, and checks off initial tasks.
-4. **AI** executes tasks (drafting chapters, writing code) and updates the file.
-5. **Human** uses `@mrcf/renderer` to export a finalized **PDF** or **Website**.
+1. **Human** writes `# VISION` and `# CONTEXT` in a `.mrcf` file.
+2. **AI** reads VISION and generates `# PLAN` and `# TASKS`.
+3. **Human** reviews the plan and kicks off work.
+4. **AI** executes tasks (drafting chapters, writing code) and marks them done.
+5. **AI** generates `# INSIGHTS` from completed tasks — capturing what worked, what failed, and why.
+6. **AI** records key choices in `# DECISIONS` with rationale and alternatives.
+7. **AI** updates `# SUMMARY` so the next session has an immediate state snapshot.
+8. **Human** uses `@mrcf/renderer` to export a finalized **HTML page**, **slides**, or **static site**.
+
+The INSIGHTS → DECISIONS → SUMMARY loop is what makes MRCF a **memory layer**: each session adds structured knowledge that makes the next session smarter.
 
 ---
 
@@ -225,8 +262,8 @@ your-project.mrcf
 
 | Package | What it does |
 |---------|-------------|
-| [`@mrcf/parser`](parser/) | Parse `.mrcf` files into typed objects. Validate against 7 rules. Resolve asset references. |
-| [`@mrcf/ai`](src/ai/) | Generate PLAN from VISION. Generate TASKS from PLAN. Analyze consistency. Supports OpenAI, Anthropic, Google. |
+| [`@mrcf/parser`](parser/) | Parse `.mrcf` files into typed objects. Validate against 9 rules (V-001–V-009). Resolve asset references. |
+| [`@mrcf/ai`](src/ai/) | Generate PLAN, TASKS, INSIGHTS, DECISIONS, and SUMMARY. Analyze consistency. Supports OpenAI, Anthropic, Google. |
 | [`@mrcf/renderer`](src/renderer/) | Render to HTML (responsive, dark mode, sticky TOC), presentation slides, multi-page static site, or ZIP bundle. |
 | [VS Code Extension](extension/) | Syntax highlighting, section folding, outline view, task explorer, AI panel, keyboard navigation. |
 
@@ -294,7 +331,7 @@ Convert a Word document, PDF, or Markdown file into `.mrcf` in one command:
 
 ```bash
 # Clone the repo first
-git clone https://github.com/playerelevenstudios/mrcf.git && cd mrcf && npm install
+git clone https://github.com/player11en/MRCF-Protocol.git && cd MRCF-Protocol && npm install
 
 # Import from DOCX (Word)
 npm run import -- my-document.docx output.mrcf
@@ -327,7 +364,7 @@ From a `.mrcf` file you can generate:
 npm run smoke -- example-full.mrcf
 ```
 
-Validation rules are defined in detail in `docs/mrcf-spec.md` under “Validation Rules” (codes `V-001`–`V-007`).
+Validation rules are defined in detail in `docs/mrcf-spec.md` under “Validation Rules” (codes `V-001`–`V-009`).
 
 ---
 

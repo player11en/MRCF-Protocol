@@ -1,5 +1,5 @@
 /**
- * MRCF Document Model
+ * MRCF Document Model — v2
  * Defines all TypeScript interfaces representing the internal representation
  * of a parsed .mrcf file.
  */
@@ -44,7 +44,7 @@ export interface MrcfMetadata {
 export interface MrcfTask {
   /** Raw description text of the task */
   description: string;
-  /** Whether the task has been completed */
+  /** Whether the task has been completed (v1 checkbox format) */
   completed: boolean;
   /** Optional owning developer / team */
   owner?: string;
@@ -54,7 +54,82 @@ export interface MrcfTask {
   id?: string;
   /** Optional list of task IDs this task depends on */
   dependsOn?: string[];
+  /** v2: explicit workflow status (overrides completed when present) */
+  status?: 'planned' | 'in_progress' | 'done' | 'failed' | 'blocked';
+  /** v2: insight IDs that relate to this task */
+  relatedInsights?: string[];
   /** Line number in the source file (1-based) */
+  lineNumber?: number;
+}
+
+// ─── v2 Block Types ───────────────────────────────────────────────────────────
+
+/** A key-value snapshot of current project state (SUMMARY section) */
+export interface MrcfSummaryBlock {
+  /** What the team/AI is currently working on */
+  currentFocus?: string;
+  /** The highest-risk item right now */
+  mainRisk?: string;
+  /** Parts of the project considered stable */
+  stableParts?: string;
+  /** Any additional free-form key-value pairs */
+  [key: string]: string | undefined;
+}
+
+/** Insight types: what kind of learning was captured */
+export type InsightType = 'success' | 'failure' | 'observation';
+
+/** A single learning entry in the INSIGHTS section */
+export interface MrcfInsightBlock {
+  /** Stable identifier, e.g. INSIGHT-1 */
+  id: string;
+  /** What kind of insight this is */
+  type: InsightType;
+  /** Human-readable description of the insight */
+  description: string;
+  /** Confidence in this insight (0.0–1.0) */
+  confidence?: number;
+  /** ID of the task or decision this insight came from */
+  source?: string;
+  /** Line number in source file (1-based) */
+  lineNumber?: number;
+}
+
+/** Impact level of a decision */
+export type DecisionImpact = 'low' | 'medium' | 'high';
+
+/** A single architectural or product decision in the DECISIONS section */
+export interface MrcfDecisionBlock {
+  /** Stable identifier, e.g. DEC-1 */
+  id: string;
+  /** The chosen option */
+  choice: string;
+  /** Why this option was chosen */
+  reason: string;
+  /** Rejected alternatives (comma-separated or single string) */
+  alternatives?: string;
+  /** Impact level of this decision */
+  impact?: DecisionImpact;
+  /** Line number in source file (1-based) */
+  lineNumber?: number;
+}
+
+/** Relationship type between two entities */
+export type ReferenceRelationship =
+  | 'derives_from'
+  | 'contradicts'
+  | 'depends_on'
+  | 'validates';
+
+/** A typed link between two IDs in the REFERENCES section */
+export interface MrcfReferenceLink {
+  /** Source entity ID (e.g. TASK-1) */
+  from: string;
+  /** Target entity ID (e.g. INSIGHT-1) */
+  to: string;
+  /** Relationship type. Defaults to depends_on when arrow syntax is used without qualifier */
+  relationship: ReferenceRelationship;
+  /** Line number in source file (1-based) */
   lineNumber?: number;
 }
 
@@ -69,18 +144,25 @@ export interface MrcfAssetReference {
 
 // ─── Sections ────────────────────────────────────────────────────────────────
 
-/** The five standard section names defined by the MRCF spec */
+/** The five required + four optional standard section names defined by MRCF v2 */
 export type StandardSectionName =
+  | 'SUMMARY'
   | 'VISION'
   | 'CONTEXT'
   | 'STRUCTURE'
   | 'PLAN'
-  | 'TASKS';
+  | 'TASKS'
+  | 'INSIGHTS'
+  | 'DECISIONS'
+  | 'REFERENCES';
+
+/** The five sections required for a valid MRCF document */
+export type RequiredSectionName = 'VISION' | 'CONTEXT' | 'STRUCTURE' | 'PLAN' | 'TASKS';
 
 export interface MrcfSection {
   /** Section name (uppercase).  Standard or custom. */
   name: string;
-  /** Whether this is one of the five required standard sections */
+  /** Whether this is one of the nine standard sections (required or optional) */
   isStandard: boolean;
   /** Raw Markdown text body of the section */
   content: string;
@@ -105,6 +187,17 @@ export interface MrcfSection {
    * content (writeback protocol).
    */
   proposals?: MrcfProposal[];
+
+  // ─── v2 structured blocks ─────────────────────────────────────────────────
+
+  /** Parsed SUMMARY key-value snapshot (populated when name === 'SUMMARY') */
+  summary?: MrcfSummaryBlock;
+  /** Parsed INSIGHTS blocks (populated when name === 'INSIGHTS') */
+  insights?: MrcfInsightBlock[];
+  /** Parsed DECISIONS blocks (populated when name === 'DECISIONS') */
+  decisions?: MrcfDecisionBlock[];
+  /** Parsed REFERENCES links (populated when name === 'REFERENCES') */
+  references?: MrcfReferenceLink[];
 }
 
 export interface MrcfSubsection {
@@ -183,7 +276,21 @@ export interface ValidationResult {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+/** All nine standard section names (required + optional) in canonical order */
 export const STANDARD_SECTIONS: readonly StandardSectionName[] = [
+  'SUMMARY',
+  'VISION',
+  'CONTEXT',
+  'STRUCTURE',
+  'PLAN',
+  'TASKS',
+  'INSIGHTS',
+  'DECISIONS',
+  'REFERENCES',
+] as const;
+
+/** The five sections that MUST be present for a valid v2 document */
+export const REQUIRED_SECTIONS: readonly RequiredSectionName[] = [
   'VISION',
   'CONTEXT',
   'STRUCTURE',

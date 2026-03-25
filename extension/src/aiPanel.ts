@@ -18,6 +18,13 @@ interface AiPreset {
 
 const PRESETS: AiPreset[] = [
   {
+    id: 'summary-from-document',
+    label: 'Generate SUMMARY (v2)',
+    defaultSections: [],
+    promptTemplate:
+      'Generate a SUMMARY section for this MRCF document with three fields: current_focus, main_risk, stable_parts. Keep each value to one sentence.',
+  },
+  {
     id: 'plan-from-vision',
     label: 'Generate PLAN from VISION',
     defaultSections: ['VISION', 'CONTEXT'],
@@ -26,17 +33,31 @@ const PRESETS: AiPreset[] = [
   },
   {
     id: 'tasks-from-plan',
-    label: 'Generate TASKS from PLAN',
-    defaultSections: ['PLAN'],
+    label: 'Generate TASKS from PLAN (v2)',
+    defaultSections: ['PLAN', 'STRUCTURE'],
     promptTemplate:
-      'Generate a TASKS section (checklist style) based on the following PLAN.',
+      'Generate a TASKS section in MRCF v2 block format ([TASK-N] with description, status, owner, depends_on, related_insights) based on the PLAN.',
+  },
+  {
+    id: 'insights-from-tasks',
+    label: 'Generate INSIGHTS from TASKS (v2)',
+    defaultSections: ['TASKS', 'PLAN'],
+    promptTemplate:
+      'Generate an INSIGHTS section in MRCF v2 block format ([INSIGHT-N] with type, description, confidence, source) based on completed, failed, or blocked tasks.',
+  },
+  {
+    id: 'decisions-from-structure',
+    label: 'Generate DECISIONS from STRUCTURE (v2)',
+    defaultSections: ['STRUCTURE', 'PLAN'],
+    promptTemplate:
+      'Generate a DECISIONS section in MRCF v2 block format ([DEC-N] with choice, reason, alternatives, impact) based on the architectural choices in STRUCTURE.',
   },
   {
     id: 'analyze-document',
     label: 'Analyze document',
     defaultSections: [],
     promptTemplate:
-      'Analyze this MRCF document and suggest missing sections, inconsistencies, or improvements.',
+      'Analyze this MRCF v2 document and suggest missing sections, inconsistencies, or improvements. Check that INSIGHTS exist for failed/done tasks and DECISIONS for major architectural choices.',
   },
   {
     id: 'custom',

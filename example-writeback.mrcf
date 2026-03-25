@@ -1,49 +1,91 @@
 ---
 title: Writeback Demo
-version: 0.1
+version: "2.0"
 created: 2026-03-13
+updated: 2026-03-25
 author: Team
 status: draft
 sections:
-  - VISION:human-only
-  - CONTEXT:human-only
-  - STRUCTURE:ai-assisted
-  - PLAN:ai-primary
-  - TASKS:ai-primary
-defaultPermission:ai-assisted
+  - VISION: human-only
+  - CONTEXT: human-only
+  - STRUCTURE: ai-assisted
+  - PLAN: ai-primary
+  - TASKS: ai-primary
+  - INSIGHTS: ai-primary
+  - DECISIONS: ai-assisted
+defaultPermission: ai-assisted
 ---
 
 # VISION
-Keep this section human-written only.
+Keep this section human-written only. The AI must not propose changes here.
 
 # CONTEXT
-Simple demo to illustrate the writeback protocol (permissions, proposals, HISTORY, task dependencies).
+Simple demo to illustrate the MRCF v2 writeback protocol — permissions, proposals, HISTORY,
+task dependencies, and the new v2 sections (INSIGHTS, DECISIONS).
 
 # STRUCTURE
-<!-- proposal: ai:demo-model | 2026-03-13T14:30:00Z | confidence:high
+<!-- proposal: ai:demo-model | 2026-03-25T10:00:00Z | confidence:high
 Suggested structure:
-- Parser
-- AI integration
-- Renderer
-reason: initial AI suggestion for STRUCTURE
+- Parser (@mrcf/parser)
+- AI integration (@mrcf/ai)
+- Renderer (@mrcf/renderer)
+- VS Code Extension
+reason: matches the four-package architecture defined in the spec
 -->
 
 # PLAN
-Phase 1: Try the smoke test.
-Phase 2: Try the review command.
+Phase 1: Run the smoke test to verify parse → validate → render round-trip.
+Phase 2: Inspect proposals with the review command.
+Phase 3: Accept or reject each proposal and commit the result.
 
 # TASKS
-- [ ] run smoke test
-  id: T-001
-  owner: dev1
-  priority: medium
-- [ ] inspect proposals with review
-  id: T-002
-  owner: dev1
-  priority: high
-  depends: T-001
+
+[TASK-1]
+title: Run smoke test (parse → validate → render)
+status: planned
+id: T-001
+owner: dev1
+priority: medium
+
+[TASK-2]
+title: Inspect proposals with review command
+status: planned
+id: T-002
+owner: dev1
+priority: high
+depends_on: T-001
+
+[TASK-3]
+title: Accept or reject each proposal
+status: planned
+id: T-003
+owner: dev1
+priority: high
+depends_on: T-002
+
+# INSIGHTS
+
+<!-- proposal: ai:demo-model | 2026-03-25T10:05:00Z | confidence:medium
+[INSIGHT-1]
+type: observation
+description: Running the smoke test before reviewing proposals helps catch parse errors early, saving time in the review step.
+confidence: 0.75
+source: T-001
+-->
+
+# DECISIONS
+
+<!-- proposal: ai:demo-model | 2026-03-25T10:10:00Z | confidence:high
+[DEC-1]
+choice: Keep VISION and CONTEXT as human-only sections
+reason: These sections define intent and audience — allowing AI to overwrite them risks drifting away from the original purpose
+alternatives: ai-assisted with mandatory human review
+impact: medium
+date: 2026-03-13
+-->
 
 # HISTORY
 2026-03-13 | human | created writeback demo document
 2026-03-13 | ai:demo-model | proposed STRUCTURE content
-
+2026-03-25 | human | upgraded to MRCF v2.0, added INSIGHTS and DECISIONS sections
+2026-03-25 | ai:demo-model | proposed INSIGHTS block and DECISIONS block

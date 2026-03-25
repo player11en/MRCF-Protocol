@@ -33,10 +33,12 @@ export function injectSection(
     const meta: any = document.metadata as any;
     const perms: Record<string, SectionPermission> | undefined = meta.sectionPermissions;
     const defaultPerm: SectionPermission | undefined = meta.defaultPermission;
+    // Default is 'ai-primary' — the writeback protocol is opt-in.
+    // Only documents that explicitly configure sections: or defaultPermission use proposal wrapping.
     const effectivePerm: SectionPermission =
         (perms && perms[sectionName]) ||
         defaultPerm ||
-        'ai-assisted';
+        'ai-primary';
 
     if (effectivePerm === 'human-only') {
         // Do not modify the document at all
@@ -53,20 +55,30 @@ export function injectSection(
     );
 
     const newSection: MrcfSection = {
-        name: result.sectionName,
-        isStandard: ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'].includes(sectionName),
+      name: result.sectionName,
+      isStandard: [
+        'SUMMARY', 'VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS',
+        'INSIGHTS', 'DECISIONS', 'REFERENCES',
+      ].includes(sectionName),
         content: result.content,
         subsections: [],
         tasks: [],
         assets: [],
     };
 
-    // Clone sections array
-    const sections = document.sections.map((s) => ({ ...s, subsections: [...s.subsections], proposals: s.proposals ? [...s.proposals] : undefined }));
+    // Clone sections array (explicit cast preserves optional proposals field type)
+    const sections: MrcfSection[] = document.sections.map((s) => ({
+        ...s,
+        subsections: [...s.subsections],
+        ...(s.proposals !== undefined ? { proposals: [...s.proposals] } : {}),
+    }));
 
     if (existingIndex === -1) {
         // Section doesn't exist — insert in canonical order
-        const canonicalOrder = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'];
+        const canonicalOrder = [
+            'SUMMARY', 'VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS',
+            'INSIGHTS', 'DECISIONS', 'REFERENCES',
+        ];
         const targetIdx = canonicalOrder.indexOf(sectionName);
 
         if (targetIdx === -1) {
@@ -79,15 +91,15 @@ export function injectSection(
             }
             sections.push(newSection);
         } else {
-            // Find the right position
-            let insertAt = sections.length;
-            for (let i = 0; i < sections.length; i++) {
-                const sIdx = canonicalOrder.indexOf(sections[i].name.toUpperCase());
-                if (sIdx > targetIdx) {
-                    insertAt = i;
-                    break;
-                }
+        // Find the right position in canonical order
+        let insertAt = sections.length;
+        for (let i = 0; i < sections.length; i++) {
+            const sIdx = canonicalOrder.indexOf(sections[i].name.toUpperCase());
+            if (sIdx !== -1 && sIdx > targetIdx) {
+                insertAt = i;
+                break;
             }
+        }
             if (effectivePerm === 'ai-assisted') {
                 newSection.content = createProposalBlock(result);
                 newSection.proposals = [
@@ -196,6 +208,53 @@ function serializeSection(section: MrcfSection, level: number): string {
     const parts: string[] = [];
     parts.push('#'.repeat(level) + ' ' + section.name);
 
+    // v2 structured sections: serialize from parsed blocks if available
+    if (section.name === 'SUMMARY' && section.summary) {
+        parts.push('');
+        for (const [k, v] of Object.entries(section.summary)) {
+            if (v !== undefined) {
+                // Convert camelCase back to snake_case for the file format
+                const snake = k.replace(/([A-Z])/g, '_$1').toLowerCase();
+                parts.push(`${snake}: ${v}`);
+            }
+        }
+        return parts.join('\n');
+    }
+
+    if (section.name === 'INSIGHTS' && section.insights && section.insights.length > 0) {
+        for (const insight of section.insights) {
+            parts.push('');
+            parts.push(`[${insight.id}]`);
+            parts.push(`type: ${insight.type}`);
+            parts.push(`description: ${insight.description}`);
+            if (insight.confidence !== undefined) parts.push(`confidence: ${insight.confidence}`);
+            if (insight.source) parts.push(`source: ${insight.source}`);
+        }
+        return parts.join('\n');
+    }
+
+    if (section.name === 'DECISIONS' && section.decisions && section.decisions.length > 0) {
+        for (const dec of section.decisions) {
+            parts.push('');
+            parts.push(`[${dec.id}]`);
+            parts.push(`choice: ${dec.choice}`);
+            parts.push(`reason: ${dec.reason}`);
+            if (dec.alternatives) parts.push(`alternatives: ${dec.alternatives}`);
+            if (dec.impact) parts.push(`impact: ${dec.impact}`);
+        }
+        return parts.join('\n');
+    }
+
+    if (section.name === 'REFERENCES' && section.references && section.references.length > 0) {
+        parts.push('');
+        for (const ref of section.references) {
+            const rel = ref.relationship === 'depends_on' ? '' : ` [${ref.relationship}]`;
+            parts.push(`- ${ref.from} → ${ref.to}${rel}`);
+        }
+        return parts.join('\n');
+    }
+
+    // Default: use raw content
     if (section.content.trim()) {
         parts.push('');
         parts.push(section.content.trim());

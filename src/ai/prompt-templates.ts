@@ -1,6 +1,5 @@
 // ─────────────────────────────────────────────
-// Prompt Templates for KDOC AI Operations
-// Developer 3 – AI Integration
+// Prompt Templates for MRCF AI Operations — v2
 // ─────────────────────────────────────────────
 
 import { PromptTemplate } from './types';
@@ -33,19 +32,22 @@ export function renderTemplate(
 
 export const TEMPLATES = {
     /**
-     * Analyze a KDOC document for consistency and completeness.
+     * Analyze an MRCF document for consistency and completeness.
      * Variables: {{document}}
      */
     analyzeDocument: {
         name: 'analyze-document',
         description: 'Analyze a .mrcf document for consistency and completeness',
         systemPrompt: [
-            'You are an expert document analyst for the KDOC format.',
-            'KDOC documents have five standard sections: VISION, CONTEXT, STRUCTURE, PLAN, TASKS.',
+            'You are an expert document analyst for the MRCF format (Machine-Readable Context Format).',
+            'MRCF v2 documents have five required sections: VISION, CONTEXT, STRUCTURE, PLAN, TASKS.',
+            'Optional sections include: SUMMARY, INSIGHTS, DECISIONS, REFERENCES.',
             'Your job is to analyze documents for:',
             '- Missing or incomplete sections',
             '- Contradictions between sections (e.g. TASKS that don\'t align with PLAN)',
             '- Vague or unclear content that would hinder AI or human collaboration',
+            '- INSIGHTS that are missing for completed or failed tasks',
+            '- DECISIONS that should be documented but are not',
             '',
             'Respond in JSON format:',
             '{',
@@ -54,7 +56,7 @@ export const TEMPLATES = {
             '}',
         ].join('\n'),
         userPromptTemplate: [
-            'Analyze the following KDOC document:',
+            'Analyze the following MRCF document:',
             '',
             '{{document}}',
         ].join('\n'),
@@ -68,7 +70,7 @@ export const TEMPLATES = {
         name: 'generate-plan',
         description: 'Generate a PLAN section from VISION, CONTEXT, and STRUCTURE',
         systemPrompt: [
-            'You are an expert project planner working with the KDOC document format.',
+            'You are an expert project planner working with the MRCF document format.',
             'Given the VISION, CONTEXT, and STRUCTURE of a project, generate a concrete PLAN section.',
             'The PLAN should include:',
             '- Clear phases with descriptive names',
@@ -100,13 +102,20 @@ export const TEMPLATES = {
         name: 'generate-tasks',
         description: 'Generate TASKS from PLAN and STRUCTURE',
         systemPrompt: [
-            'You are an expert task breakdown specialist for the KDOC format.',
-            'Given a PLAN and STRUCTURE, generate concrete TASKS.',
-            'Tasks must use Markdown checkbox format: - [ ] task description',
-            'Group tasks by phase or component using ## headers.',
+            'You are an expert task breakdown specialist for the MRCF format.',
+            'Given a PLAN and STRUCTURE, generate concrete TASKS in MRCF v2 block format.',
+            '',
+            'Use this format for each task:',
+            '[TASK-N]',
+            'description: what needs to be done',
+            'status: planned',
+            'owner: (leave blank if unknown)',
+            'depends_on: [TASK-X, TASK-Y] or []',
+            'related_insights: []',
             '',
             'Output ONLY the TASKS content (no # TASKS header).',
             'Each task should be actionable and specific.',
+            'Number tasks sequentially starting from TASK-1.',
         ].join('\n'),
         userPromptTemplate: [
             '# PLAN',
@@ -115,7 +124,107 @@ export const TEMPLATES = {
             '# STRUCTURE',
             '{{structure}}',
             '',
-            'Generate concrete TASKS from this plan.',
+            'Generate concrete TASKS from this plan in MRCF v2 block format.',
+        ].join('\n'),
+    } as PromptTemplate,
+
+    /**
+     * Generate an INSIGHTS section from completed/failed TASKS.
+     * Variables: {{tasks}}, {{plan}}
+     */
+    generateInsights: {
+        name: 'generate-insights',
+        description: 'Generate INSIGHTS from TASKS outcomes',
+        systemPrompt: [
+            'You are a learning analyst for MRCF documents.',
+            'Given the TASKS section (with statuses) and the PLAN, identify learnings.',
+            '',
+            'Use this format for each insight:',
+            '[INSIGHT-N]',
+            'type: success | failure | observation',
+            'description: what was learned',
+            'confidence: 0.0 to 1.0',
+            'source: TASK-N (the task this came from)',
+            '',
+            'Rules:',
+            '- Only generate insights for tasks with status: done, failed, or blocked',
+            '- type=success for done tasks with notable positive outcomes',
+            '- type=failure for failed or blocked tasks',
+            '- type=observation for neutral learnings',
+            '- confidence reflects how certain this insight is (0.9 = very certain)',
+            '',
+            'Output ONLY the INSIGHTS content (no # INSIGHTS header).',
+        ].join('\n'),
+        userPromptTemplate: [
+            '# PLAN',
+            '{{plan}}',
+            '',
+            '# TASKS',
+            '{{tasks}}',
+            '',
+            'Generate INSIGHTS from the completed, failed, and blocked tasks above.',
+        ].join('\n'),
+    } as PromptTemplate,
+
+    /**
+     * Generate a DECISIONS section from STRUCTURE and PLAN.
+     * Variables: {{structure}}, {{plan}}
+     */
+    generateDecisions: {
+        name: 'generate-decisions',
+        description: 'Generate DECISIONS from STRUCTURE and PLAN',
+        systemPrompt: [
+            'You are an architectural decision analyst for MRCF documents.',
+            'Given the STRUCTURE and PLAN, identify key decisions that should be documented.',
+            '',
+            'Use this format for each decision:',
+            '[DEC-N]',
+            'choice: the option that was or should be chosen',
+            'reason: why this option is best',
+            'alternatives: other options considered (comma-separated)',
+            'impact: low | medium | high',
+            '',
+            'Focus on decisions that:',
+            '- Have meaningful trade-offs',
+            '- Could be revisited later',
+            '- Affect multiple parts of the system',
+            '',
+            'Output ONLY the DECISIONS content (no # DECISIONS header).',
+        ].join('\n'),
+        userPromptTemplate: [
+            '# STRUCTURE',
+            '{{structure}}',
+            '',
+            '# PLAN',
+            '{{plan}}',
+            '',
+            'Generate DECISIONS that should be documented for this project.',
+        ].join('\n'),
+    } as PromptTemplate,
+
+    /**
+     * Generate a SUMMARY section from the full document state.
+     * Variables: {{document}}
+     */
+    generateSummary: {
+        name: 'generate-summary',
+        description: 'Generate a SUMMARY snapshot of current project state',
+        systemPrompt: [
+            'You are a project state analyst for MRCF documents.',
+            'Generate a concise SUMMARY section that gives an AI instant orientation.',
+            '',
+            'Use ONLY these three fields:',
+            'current_focus: what is actively being worked on right now',
+            'main_risk: the single biggest risk at this moment',
+            'stable_parts: which parts of the project are settled and unlikely to change',
+            '',
+            'Keep each value to one sentence. Be specific, not generic.',
+            'Output ONLY the three key-value lines (no # SUMMARY header, no extra text).',
+        ].join('\n'),
+        userPromptTemplate: [
+            'Generate a SUMMARY for this MRCF document:',
+            '',
+            '{{document}}',
         ].join('\n'),
     } as PromptTemplate,
 
@@ -127,12 +236,15 @@ export const TEMPLATES = {
         name: 'consistency-check',
         description: 'Check consistency across all document sections',
         systemPrompt: [
-            'You are a consistency auditor for KDOC documents.',
+            'You are a consistency auditor for MRCF documents.',
             'Check whether:',
             '- PLAN aligns with VISION goals',
             '- TASKS cover all items in PLAN',
             '- STRUCTURE matches what PLAN describes',
             '- No orphan tasks exist without a plan reference',
+            '- INSIGHTS reference tasks that actually exist',
+            '- DECISIONS are consistent with STRUCTURE choices',
+            '- REFERENCES point to entities that exist in TASKS, INSIGHTS, or DECISIONS',
             '',
             'Respond in JSON format:',
             '{',
@@ -141,7 +253,7 @@ export const TEMPLATES = {
             '}',
         ].join('\n'),
         userPromptTemplate: [
-            'Check consistency across all sections of this KDOC document:',
+            'Check consistency across all sections of this MRCF document:',
             '',
             '{{document}}',
         ].join('\n'),

@@ -13,8 +13,14 @@ import type {
 } from '@mrcf/parser';
 import type { RenderNode, RenderTree, TocEntry } from './types';
 
-/** Standard section names defined by the KDOC spec */
-const STANDARD_SECTIONS = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'];
+/** All standard section names defined by the MRCF v2 spec */
+const STANDARD_SECTIONS = [
+    'SUMMARY', 'VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS',
+    'INSIGHTS', 'DECISIONS', 'REFERENCES',
+];
+
+/** Required sections that must be present in every v2 document */
+const REQUIRED_SECTIONS = ['VISION', 'CONTEXT', 'STRUCTURE', 'PLAN', 'TASKS'];
 
 /**
  * Convert a section name to a URL-safe anchor id.
@@ -34,11 +40,11 @@ export function toAnchor(name: string): string {
 export function normalize(doc: MrcfDocument): RenderTree {
     const warnings: string[] = [];
 
-    // Check for missing standard sections
+    // Only warn about missing required sections (optional v2 sections are allowed to be absent)
     const presentSections = new Set(doc.sections.map((s) => s.name));
-    for (const std of STANDARD_SECTIONS) {
-        if (!presentSections.has(std)) {
-            warnings.push(`Missing required section: ${std}`);
+    for (const req of REQUIRED_SECTIONS) {
+        if (!presentSections.has(req)) {
+            warnings.push(`Missing required section: ${req}`);
         }
     }
 
@@ -90,6 +96,13 @@ function sectionToNode(section: MrcfSection, level: number): RenderNode {
             taskCount: section.tasks.length,
             completedTasks: section.tasks.filter((t) => t.completed).length,
             assetCount: section.assets.length,
+            // v2 structured block data passed through for specialized renderers
+            v2: {
+                summary: section.summary,
+                insights: section.insights,
+                decisions: section.decisions,
+                references: section.references,
+            },
         },
     };
 }
