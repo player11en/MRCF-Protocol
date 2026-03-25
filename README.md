@@ -8,6 +8,18 @@ You can apply the methodology in **plain Markdown** (using the same headings), a
 
 Think of it as: **Markdown is to text. Git is to code. MRCF is a shared memory layer for humans and AI agents.**
 
+## TL;DR
+
+MRCF is a structured plain-text document format and methodology that acts as a **persistent memory layer** for human-AI collaboration.
+
+One `.mrcf` file holds:
+- **what** to build (VISION, PLAN, TASKS)
+- **why** decisions were made (DECISIONS)
+- **what was learned** (INSIGHTS)
+- **where things stand right now** (SUMMARY)
+
+Open it in any editor. Commit it to Git. Every AI session picks up exactly where the last one left off.
+
 ---
 
 ## Format at a glance
@@ -157,55 +169,12 @@ MRCF is the **format layer** — the shared context document that process tools 
 
 **Integration example:** Use Spec Kit's `/speckit.specify` to generate your spec → store it in a `.mrcf` file → let BMAD agents read the VISION + CONTEXT sections → track tasks in the TASKS section. Each tool does what it does best.
 
----
+MRCF works well alongside the **Model Context Protocol (MCP)**:
 
-## ADK Agent Skill Pattern Support
+- **MRCF** provides human-authored, versioned **project memory** (why, for whom, how, when, what next) in a single, parseable document.
+- **MCP** handles runtime **context plumbing** — pulling live data from APIs, databases, and tools.
 
-Google's [Agent Developer Kit (ADK)](https://developers.google.com/adk) defines 5 agent skill design patterns. MRCF maps cleanly to all of them.
-
-| ADK Pattern | What it does | MRCF sections used | Template |
-| :--- | :--- | :--- | :--- |
-| **Tool Wrapper** | Load library-specific conventions on demand | `# CONTEXT` → rules, `# STRUCTURE` → API conventions | `templates/pattern-tool-wrapper.mrcf` |
-| **Generator** | Produce structured output from a reusable template | `# VISION` + `# PLAN` → template; `# TASKS` → fill-in steps | `templates/pattern-generator.mrcf` |
-| **Reviewer** | Score artifacts against a checklist by severity | `# STRUCTURE` → checklist; `# TASKS` → findings | `templates/pattern-reviewer.mrcf` |
-| **Inversion** | Agent interviews you before acting | `# VISION`/`# CONTEXT` → questions; `# PLAN` → gated synthesis | `templates/pattern-inversion.mrcf` |
-| **Pipeline** | Enforce a strict multi-step workflow with checkpoints | `# PLAN` → phases; `# TASKS` → checkpoints; writeback protocol → gates | `templates/pattern-pipeline.mrcf` |
-
-Patterns compose: a **Pipeline** skill can include a **Reviewer** step; a **Generator** can use **Inversion** to gather variables first. Because MRCF supports custom sections (`# AGENT`, `# CHECKLIST`, `# DECISIONS`), the full pattern metadata lives inside the same document.
-
----
-
-## MRCF vs. The Ecosystem
-
-How MRCF-Protocol compares to other AI-driven specification standards:
-
-| Feature | **MRCF** | **BMAD** | **GitHub Spec Kit** | **OpenSpec** |
-| :--- | :--- | :--- | :--- | :--- |
-| **Core Goal** | **Project Memory (any domain)** | Project Specs & Tickets | AI-CLI Tooling | PRD Standard |
-| **AI Memory** | **Semantic Sections** | File-based Specs | CLI Prompts | Lifecycle Archiving |
-| **Standardized View**| **Yes (Renderer)** | No (Raw MD) | No (Raw MD) | No (Raw MD) |
-| **Source of Truth** | Single `.mrcf` / structured `.md` | Many `.md` files | Many `.md` files | Multi-phase files |
-
-MRCF and these formats are **complementary** rather than strictly competing: you can still use BMAD-style tickets or GitHub specs on top of an MRCF document that holds the higher-level vision, context, structure, and plan.
-
-### MRCF and MCP (Model Context Protocol)
-
-Modern AI systems increasingly use the **Model Context Protocol (MCP)** to fetch live, structured context (APIs, databases, tools) at runtime.
-
-MRCF focuses on a different layer:
-
-- **MRCF**: human-authored, versioned **project memory** (why, for whom, how, when, what next) in a single, parseable document.
-- **MCP**: runtime **context plumbing** that lets agents pull in current data from many sources.
-
-Used together, an agent can:
-
-1. Read the `.mrcf` file to understand the project’s intent and structure.
-2. Use MCP tools to fetch live data while executing or updating the PLAN and TASKS.
-
----
-
-### The "Single Source of Truth" Philosophy
-Unlike a PDF, which is a finalized "screenshot" of information, MRCF is a living document. It provides the **semantic anchors** (like `# VISION` or `# PLAN`) that allow an AI to understand context instantly. You maintain the MRCF source; the AI generates the PDF, HTML, or code from it.
+Used together, an agent reads the `.mrcf` file for intent and structure, then uses MCP tools to fetch live data while executing tasks.
 
 ---
 
@@ -229,18 +198,16 @@ The `@mrcf/parser` automatically resolves these local paths, allowing the render
 
 ## Human-AI Workflow
 
-MRCF is designed for an iterative loop where humans set the strategy and AI maintains a persistent memory layer:
+MRCF is designed for an iterative loop where humans set the strategy and AI maintains the memory layer:
 
-1. **Human** writes `# VISION` and `# CONTEXT` in a `.mrcf` file.
-2. **AI** reads VISION and generates `# PLAN` and `# TASKS`.
-3. **Human** reviews the plan and kicks off work.
-4. **AI** executes tasks (drafting chapters, writing code) and marks them done.
-5. **AI** generates `# INSIGHTS` from completed tasks — capturing what worked, what failed, and why.
-6. **AI** records key choices in `# DECISIONS` with rationale and alternatives.
-7. **AI** updates `# SUMMARY` so the next session has an immediate state snapshot.
-8. **Human** uses `@mrcf/renderer` to export a finalized **HTML page**, **slides**, or **static site**.
+1. **Human** writes `# VISION` and `# CONTEXT` — the intent and constraints only a human can define.
+2. **AI suggests** `# PLAN` and `# TASKS`; **human reviews, edits, and approves** before any work starts.
+3. **Human** drives execution; AI assists with drafting, code generation, and research on request.
+4. **Human marks tasks done**; AI generates `# INSIGHTS` from outcomes — capturing what worked and what didn’t.
+5. **AI proposes** `# DECISIONS` with rationale and alternatives; **human accepts, edits, or rejects** each one via the writeback protocol.
+6. **AI updates** `# SUMMARY` as a compact re-entry snapshot — so the next session starts informed, not blank.
 
-The INSIGHTS → DECISIONS → SUMMARY loop is what makes MRCF a **memory layer**: each session adds structured knowledge that makes the next session smarter.
+The INSIGHTS → DECISIONS → SUMMARY loop is what makes MRCF a **memory layer**: structured knowledge accumulates across sessions, and humans stay in control at every step.
 
 ---
 
