@@ -214,18 +214,21 @@ body {
   position: relative;
 }
 
-.slide {
+.slides-container > .slide {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 100%;
-  display: none;
+  display: none !important;
   flex-direction: column;
   justify-content: center;
   padding: 4rem 6rem;
 }
 
-.slide.active { display: flex; }
+.slides-container > .slide.active { display: flex !important; }
+
+/* Fallback for restrictive preview environments: show only first slide */
+.slides-container > .slide:first-child { display: flex; }
 
 .slide-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
