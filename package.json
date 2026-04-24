@@ -10,12 +10,14 @@
     "parser",
     "extension",
     "src/ai",
-    "src/renderer"
+    "src/renderer",
+    "mcp-server"
   ],
   "scripts": {
     "build": "tsc",
     "build:parser": "cd parser && npm run build",
-    "build:all": "npm run build:parser && npm run build",
+    "build:mcp": "cd mcp-server && npm run build",
+    "build:all": "npm run build:parser && npm run build && npm run build:mcp",
     "test": "jest",
     "test:parser": "cd parser && npm test",
     "test:ai": "jest --testPathPattern=src/ai",

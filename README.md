@@ -27,7 +27,7 @@ Open it in any editor. Commit it to Git. Every AI session picks up exactly where
 ```mrcf
 ---
 title: My Project
-version: "2.0"
+version: 2.0
 created: 2026-03-25
 author: Your Name
 status: active
