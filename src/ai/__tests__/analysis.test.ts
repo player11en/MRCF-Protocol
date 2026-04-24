@@ -134,7 +134,7 @@ describe('extractMetadata', () => {
 });
 
 describe('parseMrcfDocument', () => {
-    it('parses a complete kdoc document', () => {
+    it('parses a complete mrcf document', () => {
         const raw = `---\ntitle: Test\nversion: 1.0\ncreated: 2026-01-01\n---\n\n# VISION\n\nBuild something.\n\n# TASKS\n\n- [ ] task 1`;
         const doc = parseMrcfDocument(raw);
         expect(doc.metadata.title).toBe('Test');

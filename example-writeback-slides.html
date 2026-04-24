@@ -1,12 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`renderSlides snapshot: slide deck HTML 1`] = `
-"<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test Presentation — Slides</title>
+<title>Writeback Demo — Slides</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -103,62 +100,110 @@ body {
 <div class="slides-container">
 <div class="slide slide-title" data-slide="1">
   <div class="slide-content">
-    <h1 class="slide-title">Test Presentation</h1>
-    <p class="slide-subtitle">By Presenter</p>
+    <h1 class="slide-title">Writeback Demo</h1>
+    <p class="slide-subtitle">By Team</p>
     <div class="slide-body"></div>
   </div>
   <div class="slide-footer">
-    <span>1 / 6</span>
+    <span>1 / 10</span>
   </div>
 </div>
 <div class="slide slide-intro" data-slide="2">
   <div class="slide-content">
     <h1 class="slide-title">VISION</h1>
-    <p class="slide-subtitle">Build something great.</p>
-    <div class="slide-body"><p>Build something great.</p></div>
+    <p class="slide-subtitle">Keep this section human-written only. The AI must not propose changes here.</p>
+    <div class="slide-body"><p>Keep this section human-written only. The AI must not propose changes here.</p></div>
   </div>
   <div class="slide-footer">
-    <span>2 / 6</span>
+    <span>2 / 10</span>
   </div>
 </div>
 <div class="slide slide-problem" data-slide="3">
   <div class="slide-content">
     <h1 class="slide-title">CONTEXT</h1>
-    <p class="slide-subtitle">For developers and architects.</p>
-    <div class="slide-body"><p>For developers and architects.</p></div>
+    <p class="slide-subtitle">Simple demo to illustrate the MRCF v2 writeback protocol — permissions, propo...</p>
+    <div class="slide-body"><p>Simple demo to illustrate the MRCF v2 writeback protocol — permissions, proposals, HISTORY, task dependencies, and the new v2 sections (INSIGHTS, DECISIONS).</p></div>
   </div>
   <div class="slide-footer">
-    <span>3 / 6</span>
+    <span>3 / 10</span>
   </div>
 </div>
 <div class="slide slide-architecture" data-slide="4">
   <div class="slide-content">
     <h1 class="slide-title">STRUCTURE</h1>
-    <p class="slide-subtitle">Modular system.</p>
-    <div class="slide-body"><p>Modular system.</p></div>
+    <p class="slide-subtitle">&lt;!-- proposal: ai:demo-model | 2026-03-25T10:00:00Z | confidence:high</p>
+    <div class="slide-body"><p><!-- proposal: ai:demo-model | 2026-03-25T10:00:00Z | confidence:high Suggested structure:</p>
+<ul>
+<li>Parser (@mrcf/parser)</li>
+<li>AI integration (@mrcf/ai)</li>
+<li>Renderer (@mrcf/renderer)</li>
+<li>VS Code Extension</li>
+</ul>
+<p>reason: matches the four-package architecture defined in the spec --></p></div>
   </div>
   <div class="slide-footer">
-    <span>4 / 6</span>
+    <span>4 / 10</span>
   </div>
 </div>
 <div class="slide slide-roadmap" data-slide="5">
   <div class="slide-content">
     <h1 class="slide-title">PLAN</h1>
-    <p class="slide-subtitle">Phase 1: Build.</p>
-    <div class="slide-body"><p>Phase 1: Build. Phase 2: Scale.</p></div>
+    <p class="slide-subtitle">Phase 1: Run the smoke test to verify parse → validate → render round-trip.</p>
+    <div class="slide-body"><p>Phase 1: Run the smoke test to verify parse → validate → render round-trip. Phase 2: Inspect proposals with the review command. Phase 3: Accept or reject each proposal and commit the result.</p></div>
   </div>
   <div class="slide-footer">
-    <span>5 / 6</span>
+    <span>5 / 10</span>
   </div>
 </div>
 <div class="slide slide-next-steps" data-slide="6">
   <div class="slide-content">
-    <h1 class="slide-title">TASKS</h1>
-    
-    <div class="slide-body"></div>
+    <h1 class="slide-title">TASKS (1/2)</h1>
+    <p class="slide-subtitle">[TASK-1]</p>
+    <div class="slide-body"><p>[TASK-1] title: Run smoke test (parse → validate → render) status: planned id: T-001 owner: dev1 priority: medium</p>
+<p>[TASK-2] title: Inspect proposals with review command status: planned id: T-002 owner: dev1 priority: high depends_on: T-001</p></div>
   </div>
   <div class="slide-footer">
-    <span>6 / 6</span>
+    <span>6 / 10</span>
+  </div>
+</div>
+<div class="slide slide-next-steps" data-slide="7">
+  <div class="slide-content">
+    <h1 class="slide-title">TASKS (2/2)</h1>
+    
+    <div class="slide-body"><p>[TASK-3] title: Accept or reject each proposal status: planned id: T-003 owner: dev1 priority: high depends_on: T-002</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>7 / 10</span>
+  </div>
+</div>
+<div class="slide slide-content" data-slide="8">
+  <div class="slide-content">
+    <h1 class="slide-title">INSIGHTS</h1>
+    <p class="slide-subtitle">&lt;!-- proposal: ai:demo-model | 2026-03-25T10:05:00Z | confidence:medium</p>
+    <div class="slide-body"><p><!-- proposal: ai:demo-model | 2026-03-25T10:05:00Z | confidence:medium [INSIGHT-1] type: observation description: Running the smoke test before reviewing proposals helps catch parse errors early, saving time in the review step. confidence: 0.75 source: T-001 --></p></div>
+  </div>
+  <div class="slide-footer">
+    <span>8 / 10</span>
+  </div>
+</div>
+<div class="slide slide-content" data-slide="9">
+  <div class="slide-content">
+    <h1 class="slide-title">DECISIONS</h1>
+    <p class="slide-subtitle">&lt;!-- proposal: ai:demo-model | 2026-03-25T10:10:00Z | confidence:high</p>
+    <div class="slide-body"><p><!-- proposal: ai:demo-model | 2026-03-25T10:10:00Z | confidence:high [DEC-1] choice: Keep VISION and CONTEXT as human-only sections reason: These sections define intent and audience — allowing AI to overwrite them risks drifting away from the original purpose alternatives: ai-assisted with mandatory human review impact: medium date: 2026-03-13 --></p></div>
+  </div>
+  <div class="slide-footer">
+    <span>9 / 10</span>
+  </div>
+</div>
+<div class="slide slide-content" data-slide="10">
+  <div class="slide-content">
+    <h1 class="slide-title">HISTORY</h1>
+    <p class="slide-subtitle">2026-03-13 | human | created writeback demo document</p>
+    <div class="slide-body"><p>2026-03-13 | human | created writeback demo document 2026-03-13 | ai:demo-model | proposed STRUCTURE content 2026-03-25 | human | upgraded to MRCF v2.0, added INSIGHTS and DECISIONS sections 2026-03-25 | ai:demo-model | proposed INSIGHTS block and DECISIONS block</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>10 / 10</span>
   </div>
 </div>
 </div>
@@ -196,5 +241,4 @@ body {
 })();
 </script>
 </body>
-</html>"
-`;
+</html>

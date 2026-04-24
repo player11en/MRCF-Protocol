@@ -1,0 +1,47 @@
+[
+  {
+    "title": "Writeback Demo",
+    "url": "index.html",
+    "content": "Keep this section human-written only. The AI must not propose changes here."
+  },
+  {
+    "title": "VISION",
+    "url": "vision.html",
+    "content": "Keep this section human-written only. The AI must not propose changes here."
+  },
+  {
+    "title": "CONTEXT",
+    "url": "context.html",
+    "content": "Simple demo to illustrate the MRCF v2 writeback protocol — permissions, proposals, HISTORY,\ntask dependencies, and the new v2 sections (INSIGHTS, DECISIONS)."
+  },
+  {
+    "title": "STRUCTURE",
+    "url": "structure.html",
+    "content": "<!-- proposal: ai:demo-model | 2026-03-25T10:00:00Z | confidence:high\nSuggested structure:\n- Parser (@mrcf/parser)\n- AI integration (@mrcf/ai)\n- Renderer (@mrcf/renderer)\n- VS Code Extension\nreason: matches the four-package architecture defined in the spec\n-->"
+  },
+  {
+    "title": "PLAN",
+    "url": "plan.html",
+    "content": "Phase 1: Run the smoke test to verify parse → validate → render round-trip.\nPhase 2: Inspect proposals with the review command.\nPhase 3: Accept or reject each proposal and commit the result."
+  },
+  {
+    "title": "TASKS",
+    "url": "tasks.html",
+    "content": "[TASK-1]\ntitle: Run smoke test (parse → validate → render)\nstatus: planned\nid: T-001\nowner: dev1\npriority: medium\n\n[TASK-2]\ntitle: Inspect proposals with review command\nstatus: planned\nid: T-002\nowner: dev1\npriority: high\ndepends_on: T-001\n\n[TASK-3]\ntitle: Accept or reject each proposal\nstatus: plan"
+  },
+  {
+    "title": "INSIGHTS",
+    "url": "insights.html",
+    "content": "<!-- proposal: ai:demo-model | 2026-03-25T10:05:00Z | confidence:medium\n[INSIGHT-1]\ntype: observation\ndescription: Running the smoke test before reviewing proposals helps catch parse errors early, saving time in the review step.\nconfidence: 0.75\nsource: T-001\n-->"
+  },
+  {
+    "title": "DECISIONS",
+    "url": "decisions.html",
+    "content": "<!-- proposal: ai:demo-model | 2026-03-25T10:10:00Z | confidence:high\n[DEC-1]\nchoice: Keep VISION and CONTEXT as human-only sections\nreason: These sections define intent and audience — allowing AI to overwrite them risks drifting away from the original purpose\nalternatives: ai-assisted with mandator"
+  },
+  {
+    "title": "HISTORY",
+    "url": "history.html",
+    "content": "2026-03-13 | human | created writeback demo document\n2026-03-13 | ai:demo-model | proposed STRUCTURE content\n2026-03-25 | human | upgraded to MRCF v2.0, added INSIGHTS and DECISIONS sections\n2026-03-25 | ai:demo-model | proposed INSIGHTS block and DECISIONS block"
+  }
+]

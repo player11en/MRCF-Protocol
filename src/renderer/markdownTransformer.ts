@@ -46,11 +46,11 @@ export function markdownToHtml(markdown: string): string {
     // Task checkboxes
     html = html.replace(
         /^(\s*)- \[x\]\s+(.+)$/gm,
-        '$1<li class="kdoc-task kdoc-task-done"><input type="checkbox" checked disabled> $2</li>',
+        '$1<li class="mrcf-task mrcf-task-done"><input type="checkbox" checked disabled> $2</li>',
     );
     html = html.replace(
         /^(\s*)- \[ \]\s+(.+)$/gm,
-        '$1<li class="kdoc-task kdoc-task-open"><input type="checkbox" disabled> $2</li>',
+        '$1<li class="mrcf-task mrcf-task-open"><input type="checkbox" disabled> $2</li>',
     );
 
     // Unordered lists (lines starting with - or *)
@@ -128,7 +128,7 @@ function mediaTag(alt: string, src: string): string {
     const ext = src.split('.').pop()?.split('?')[0]?.toLowerCase() ?? '';
     if (VIDEO_EXTS.has(ext)) {
         return (
-            `<video controls class="kdoc-asset" aria-label="${escapeAttr(alt)}">` +
+            `<video controls class="mrcf-asset" aria-label="${escapeAttr(alt)}">` +
             `<source src="${escapeAttr(src)}">` +
             `<p>Video: <a href="${escapeAttr(src)}">${escapeHtml(alt || src)}</a></p>` +
             `</video>`
@@ -136,13 +136,13 @@ function mediaTag(alt: string, src: string): string {
     }
     if (AUDIO_EXTS.has(ext)) {
         return (
-            `<audio controls class="kdoc-asset" aria-label="${escapeAttr(alt)}">` +
+            `<audio controls class="mrcf-asset" aria-label="${escapeAttr(alt)}">` +
             `<source src="${escapeAttr(src)}">` +
             `<p>Audio: <a href="${escapeAttr(src)}">${escapeHtml(alt || src)}</a></p>` +
             `</audio>`
         );
     }
-    return `<img src="${escapeAttr(src)}" alt="${escapeAttr(alt)}" class="kdoc-asset">`;
+    return `<img src="${escapeAttr(src)}" alt="${escapeAttr(alt)}" class="mrcf-asset">`;
 }
 
 /**
@@ -261,7 +261,7 @@ function processLists(html: string): string {
     let inList = false;
 
     for (const line of lines) {
-        const isTaskItem = line.includes('kdoc-task');
+        const isTaskItem = line.includes('mrcf-task');
         const isListItem = /^\s*[-*]\s+/.test(line) && !isTaskItem;
 
         if (isListItem) {
@@ -273,7 +273,7 @@ function processLists(html: string): string {
             result.push(`<li>${content}</li>`);
         } else if (isTaskItem) {
             if (!inList) {
-                result.push('<ul class="kdoc-task-list">');
+                result.push('<ul class="mrcf-task-list">');
                 inList = true;
             }
             // Task items are already wrapped in <li> by earlier processing

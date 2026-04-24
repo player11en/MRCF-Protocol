@@ -89,8 +89,8 @@ describe('markdownToHtml', () => {
 
     it('converts task checkboxes', () => {
         const result = markdownToHtml('- [ ] open task\n- [x] done task');
-        expect(result).toContain('kdoc-task-open');
-        expect(result).toContain('kdoc-task-done');
+        expect(result).toContain('mrcf-task-open');
+        expect(result).toContain('mrcf-task-done');
         expect(result).toContain('checked');
     });
 

@@ -1,7 +1,7 @@
 ---
 title: MRCF Writeback Protocol
-version: 0.1
-status: draft
+version: 1.0
+status: active
 author: Dev 3 — AI Integration
 ---
 

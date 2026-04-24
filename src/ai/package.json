@@ -1,13 +1,17 @@
 {
-    "name": "@mrcf/ai",
-    "version": "0.1.0",
-    "description": "AI Integration layer for MRCF",
-    "main": "index.ts",
-    "types": "index.ts",
-    "scripts": {
-        "test": "jest"
-    },
-    "dependencies": {
-        "@mrcf/parser": "*"
-    }
+  "name": "@mrcf/ai",
+  "version": "0.2.0-beta.1",
+  "description": "AI integration layer for MRCF — generates PLAN, TASKS, INSIGHTS, DECISIONS, SUMMARY via OpenAI, Anthropic, and Google",
+  "main": "../../dist/ai/index.js",
+  "types": "../../dist/ai/index.d.ts",
+  "files": [
+    "../../dist/ai"
+  ],
+  "scripts": {
+    "test": "jest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mrcf/parser": "*"
+  }
 }

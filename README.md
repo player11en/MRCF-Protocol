@@ -272,14 +272,67 @@ npm run review -- example-writeback.mrcf
 
 ## Quick start
 
-### Option 1 — VS Code (recommended for developers)
+> **Requirements:** Node.js 18+ must be installed. Check with `node --version`.
 
-1. Install the **MRCF** extension from the VS Code Marketplace
-2. Create a new file: `my-project.mrcf`
-3. Start typing — syntax highlighting, folding, and the section outline activate automatically
-4. Open the MRCF sidebar to navigate sections, manage tasks, and run AI generation
+### Option 1 — Clone and run in 3 commands
 
-**Keybindings:**
+```bash
+git clone https://github.com/player11en/MRCF-Protocol.git
+cd MRCF-Protocol
+npm install
+```
+
+Then verify everything works:
+
+```bash
+# Full end-to-end smoke test: parse → validate → render → export all formats
+npm run smoke -- example-full.mrcf
+```
+
+### Option 2 — Use the CLI
+
+After installing, use the `mrcf` CLI via `npm run mrcf -- <command>`:
+
+```bash
+# Validate an .mrcf file
+npm run mrcf -- validate my-project.mrcf
+
+# Render to HTML
+npm run mrcf -- render my-project.mrcf --out ./output
+
+# Render to slides, site, or zip
+npm run mrcf -- render my-project.mrcf --format slides --out ./output
+
+# End-to-end smoke test
+npm run mrcf -- smoke my-project.mrcf
+
+# Review AI proposals in a writeback document
+npm run mrcf -- review my-project.mrcf
+npm run mrcf -- review my-project.mrcf --accept-all
+```
+
+**CLI commands:**
+
+| Command | Description |
+|---------|-------------|
+| `validate <file>` | Parse + validate, print all issues. Exits 1 on errors. |
+| `render <file>` | Render to HTML, slides, site, or ZIP (`--format`, `--out`). |
+| `smoke <file>` | Full pipeline test: parse → validate → all 4 export formats. |
+| `review <file>` | List AI proposals. Use `--accept-all` or `--reject-all` to process. |
+
+### Option 3 — VS Code extension (local install)
+
+The extension compiles and packages as a `.vsix` for local install:
+
+```bash
+npm install                       # installs all deps including vsce
+```
+
+Then in VS Code: **Extensions → ⋯ → Install from VSIX** → select the `.vsix` file.
+
+Features: syntax highlighting, section folding, outline view, task explorer, AI panel.
+
+**Keybindings (when editing a `.mrcf` file):**
 
 | Key | Action |
 |-----|--------|
@@ -287,11 +340,7 @@ npm run review -- example-writeback.mrcf
 | `Ctrl+Alt+Up` | Go to previous section |
 | `Ctrl+Alt+Space` | Toggle task checkbox |
 
-### Option 2 — npm packages (for developers / pipelines)
-
-```bash
-npm install @mrcf/parser @mrcf/renderer
-```
+### Option 4 — Use as a library
 
 ```ts
 import { parse, validate } from '@mrcf/parser';
@@ -299,19 +348,17 @@ import { renderHtml, exportDocument } from '@mrcf/renderer';
 
 const result = parse(source);
 if (result.ok) {
-    const html = renderHtml(result.document);
-    // or: await exportDocument(result.document, 'zip', { assetBasePath: './assets' })
+    const html = renderHtml(result.document!);
+    // or export to zip:
+    const zip = await exportDocument(result.document!, 'zip', { assetBasePath: './assets' });
 }
 ```
 
-### Option 3 — Import from an existing document
+### Option 5 — Import from an existing document
 
 Convert a Word document, PDF, or Markdown file into `.mrcf` in one command:
 
 ```bash
-# Clone the repo first
-git clone https://github.com/player11en/MRCF-Protocol.git && cd MRCF-Protocol && npm install
-
 # Import from DOCX (Word)
 npm run import -- my-document.docx output.mrcf
 

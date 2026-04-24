@@ -1,13 +1,18 @@
 {
-    "name": "@mrcf/renderer",
-    "version": "0.1.0",
-    "description": "Renderer module for MRCF",
-    "main": "index.ts",
-    "types": "index.ts",
-    "scripts": {
-        "test": "jest"
-    },
-    "dependencies": {
-        "@mrcf/parser": "*"
-    }
+  "name": "@mrcf/renderer",
+  "version": "0.2.0-beta.1",
+  "description": "Rendering layer for MRCF — exports to HTML, slides, static site, and ZIP",
+  "main": "../../dist/renderer/index.js",
+  "types": "../../dist/renderer/index.d.ts",
+  "files": [
+    "../../dist/renderer"
+  ],
+  "scripts": {
+    "test": "jest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mrcf/parser": "*",
+    "jszip": "^3.10.1"
+  }
 }

@@ -75,7 +75,7 @@ export function parseMrcfDocument(rawDocument: string): MrcfDocument {
 }
 
 /**
- * Checks which standard KDOC sections are present.
+ * Checks which standard MRCF sections are present.
  */
 export function listPresentSections(
     document: MrcfDocument

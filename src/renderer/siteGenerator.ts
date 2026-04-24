@@ -120,7 +120,7 @@ ${doc.metadata.author ? `<meta name="author" content="${escapeHtml(doc.metadata.
       ${sidebarHtml}
     </ul>
   </nav>
-  <main class="site-content kdoc-container">
+  <main class="site-content mrcf-container">
     ${content}
   </main>
 </div>
@@ -138,18 +138,18 @@ function renderLandingPage(doc: MrcfDocument, navItems: NavItem[]): string {
         : '<p>No VISION section found.</p>';
 
     const content = `
-<header class="kdoc-header">
+<header class="mrcf-header">
   <h1>${escapeHtml(doc.metadata.title)}</h1>
-  <div class="kdoc-header-meta">
+  <div class="mrcf-header-meta">
     <span>v${escapeHtml(doc.metadata.version)}</span>
     ${doc.metadata.author ? `<span>${escapeHtml(doc.metadata.author)}</span>` : ''}
     <span>${escapeHtml(doc.metadata.created)}</span>
   </div>
-  ${doc.metadata.tags?.length ? `<div style="margin-top: 0.5rem;">${doc.metadata.tags.map((t) => `<span class="kdoc-tag">${escapeHtml(t)}</span>`).join(' ')}</div>` : ''}
+  ${doc.metadata.tags?.length ? `<div style="margin-top: 0.5rem;">${doc.metadata.tags.map((t) => `<span class="mrcf-tag">${escapeHtml(t)}</span>`).join(' ')}</div>` : ''}
 </header>
-<section class="kdoc-section kdoc-section-vision">
+<section class="mrcf-section mrcf-section-vision">
   <h2>Vision</h2>
-  <div class="kdoc-section-content">${visionHtml}</div>
+  <div class="mrcf-section-content">${visionHtml}</div>
 </section>
 <nav class="site-section-list">
   <h2>Sections</h2>
@@ -172,14 +172,14 @@ function renderSectionPage(
     next: NavItem | null,
 ): string {
     let content = `
-<section class="kdoc-section kdoc-section-${toAnchor(section.name)}">
+<section class="mrcf-section mrcf-section-${toAnchor(section.name)}">
   <h2>${escapeHtml(section.name)}</h2>
-  <div class="kdoc-section-content">${markdownToHtml(section.content)}</div>`;
+  <div class="mrcf-section-content">${markdownToHtml(section.content)}</div>`;
 
     // Render subsections
     for (const sub of section.subsections) {
         content += `
-  <div id="${toAnchor(sub.name)}" class="kdoc-subsection">
+  <div id="${toAnchor(sub.name)}" class="mrcf-subsection">
     <h3>${escapeHtml(sub.name)}</h3>
     ${markdownToHtml(sub.content)}
   </div>`;

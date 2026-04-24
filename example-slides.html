@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Project — Slides</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow: hidden;
+}
+
+.slides-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.slides-container > .slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: none !important;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 6rem;
+}
+
+.slides-container > .slide.active { display: flex !important; }
+
+/* Fallback for restrictive preview environments: show only first slide */
+.slides-container > .slide:first-child { display: flex; }
+
+.slide-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+.slide-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.slide-subtitle {
+  font-size: 1.4rem;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+}
+
+.slide-body {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.slide-body ul { padding-left: 2rem; margin: 0.5rem 0; }
+.slide-body li { margin: 0.4rem 0; }
+.slide-body code { background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 4px; }
+.slide-body pre { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin: 1rem 0; overflow-x: auto; }
+.slide-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.slide-body th, .slide-body td { border: 1px solid #334155; padding: 0.5rem 0.8rem; text-align: left; }
+.slide-body th { background: rgba(255,255,255,0.05); }
+
+.slide-footer {
+  text-align: right;
+  font-size: 0.9rem;
+  color: #64748b;
+  padding-top: 1rem;
+}
+
+/* Slide type variations */
+.slide-title-slide { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+.slide-title-slide .slide-title { font-size: 3.5rem; }
+.slide-intro { border-left: 6px solid #6366f1; }
+.slide-problem { border-left: 6px solid #8b5cf6; }
+.slide-architecture { border-left: 6px solid #06b6d4; }
+.slide-roadmap { border-left: 6px solid #10b981; }
+.slide-next-steps { border-left: 6px solid #f59e0b; }
+.slide-content { border-left: 6px solid #9ca3af; }
+
+/* Navigation hint */
+.slides-container::after {
+  content: 'Use ← → arrow keys to navigate';
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #475569;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+</style>
+</head>
+<body>
+<div class="slides-container">
+<div class="slide slide-title" data-slide="1">
+  <div class="slide-content">
+    <h1 class="slide-title">My Project</h1>
+    <p class="slide-subtitle">v2.0</p>
+    <div class="slide-body"></div>
+  </div>
+  <div class="slide-footer">
+    <span>1 / 11</span>
+  </div>
+</div>
+<div class="slide slide-content" data-slide="2">
+  <div class="slide-content">
+    <h1 class="slide-title">SUMMARY</h1>
+    <p class="slide-subtitle">[SUMMARY]</p>
+    <div class="slide-body"><p>[SUMMARY] as_of: 2026-03-25 phase: Planning health: on-track next: Define core data model and wire up initial API routes open_tasks: 3 open_blockers: 0</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>2 / 11</span>
+  </div>
+</div>
+<div class="slide slide-intro" data-slide="3">
+  <div class="slide-content">
+    <h1 class="slide-title">VISION</h1>
+    <p class="slide-subtitle">Build a lightweight task management tool that lets small teams coordinate work</p>
+    <div class="slide-body"><p>Build a lightweight task management tool that lets small teams coordinate work without the overhead of enterprise project software.</p>
+<p><strong>Problem:</strong> Existing tools are either too complex or too limited. <strong>Goal:</strong> A focused app that handles the 80% of project coordination needs. <strong>Success:</strong> Teams complete 20% more tasks per sprint within the first month.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>3 / 11</span>
+  </div>
+</div>
+<div class="slide slide-problem" data-slide="4">
+  <div class="slide-content">
+    <h1 class="slide-title">CONTEXT</h1>
+    <p class="slide-subtitle">**Audience:** Small software teams (2–10 people).</p>
+    <div class="slide-body"><p><strong>Audience:</strong> Small software teams (2–10 people). <strong>Constraints:</strong> Must run as a single-page app; no server-side rendering required. <strong>Stack:</strong> TypeScript, React, Vite, SQLite (via Tauri for desktop builds). <strong>Environment:</strong> macOS and Windows primary, Linux community-supported.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>4 / 11</span>
+  </div>
+</div>
+<div class="slide slide-architecture" data-slide="5">
+  <div class="slide-content">
+    <h1 class="slide-title">STRUCTURE (1/3)</h1>
+    <p class="slide-subtitle">Architecture</p>
+    <div class="slide-body"><h2>Architecture</h2>
+<p>Single-page application with a local-first data layer backed by SQLite. Syncing is optional and handled via a lightweight REST adapter.</p>
+<pre><code>src/
+  components/   — UI layer (React)
+  store/        — State management (Zustand)
+  db/           — SQLite access layer (Tauri plugin)
+  api/          — REST adapter (optional sync)</code></pre>
+<h2>Key Design Decisions</h2></div>
+  </div>
+  <div class="slide-footer">
+    <span>5 / 11</span>
+  </div>
+</div>
+<div class="slide slide-architecture" data-slide="6">
+  <div class="slide-content">
+    <h1 class="slide-title">STRUCTURE (2/3)</h1>
+    
+    <div class="slide-body"><ul>
+<li>Local-first: the app works fully offline; sync is additive.</li>
+<li>No authentication in v1 — single user per device.</li>
+<li>Tasks are the primary entity; projects group tasks.</li>
+</ul>
+<h2>Architecture</h2>
+<p>Single-page application with a local-first data layer backed by SQLite. Syncing is optional and handled via a lightweight REST adapter.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>6 / 11</span>
+  </div>
+</div>
+<div class="slide slide-architecture" data-slide="7">
+  <div class="slide-content">
+    <h1 class="slide-title">STRUCTURE (3/3)</h1>
+    
+    <div class="slide-body"><pre><code>src/
+  components/   — UI layer (React)
+  store/        — State management (Zustand)
+  db/           — SQLite access layer (Tauri plugin)
+  api/          — REST adapter (optional sync)</code></pre>
+<h2>Key Design Decisions</h2>
+<ul>
+<li>Local-first: the app works fully offline; sync is additive.</li>
+<li>No authentication in v1 — single user per device.</li>
+<li>Tasks are the primary entity; projects group tasks.</li>
+</ul></div>
+  </div>
+  <div class="slide-footer">
+    <span>7 / 11</span>
+  </div>
+</div>
+<div class="slide slide-roadmap" data-slide="8">
+  <div class="slide-content">
+    <h1 class="slide-title">PLAN (1/2)</h1>
+    <p class="slide-subtitle">Phase 1 — Foundation (weeks 1–2)</p>
+    <div class="slide-body"><h2>Phase 1 — Foundation (weeks 1–2)</h2>
+<p>Set up repo, build system, SQLite schema, and basic CRUD.</p>
+<h2>Phase 2 — Core UI (weeks 3–5)</h2>
+<p>Task list view, create/edit/delete flows, drag-and-drop reorder.</p>
+<h2>Phase 3 — Sync (weeks 6–8)</h2>
+<p>Optional REST sync adapter, conflict resolution (last-write-wins).</p>
+<h2>Phase 4 — Polish & Release (weeks 9–10)</h2>
+<p>Keyboard shortcuts, dark mode, packaging, release notes.</p>
+<h2>Phase 1 — Foundation (weeks 1–2)</h2>
+<p>Set up repo, build system, SQLite schema, and basic CRUD.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>8 / 11</span>
+  </div>
+</div>
+<div class="slide slide-roadmap" data-slide="9">
+  <div class="slide-content">
+    <h1 class="slide-title">PLAN (2/2)</h1>
+    
+    <div class="slide-body"><h2>Phase 2 — Core UI (weeks 3–5)</h2>
+<p>Task list view, create/edit/delete flows, drag-and-drop reorder.</p>
+<h2>Phase 3 — Sync (weeks 6–8)</h2>
+<p>Optional REST sync adapter, conflict resolution (last-write-wins).</p>
+<h2>Phase 4 — Polish & Release (weeks 9–10)</h2>
+<p>Keyboard shortcuts, dark mode, packaging, release notes.</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>9 / 11</span>
+  </div>
+</div>
+<div class="slide slide-next-steps" data-slide="10">
+  <div class="slide-content">
+    <h1 class="slide-title">TASKS (1/2)</h1>
+    <p class="slide-subtitle">[TASK-1]</p>
+    <div class="slide-body"><p>[TASK-1] description: Define SQLite schema for tasks and projects status: in_progress owner: dev1 priority: high id: T-001</p>
+<p>[TASK-2] description: Scaffold React component tree with routing status: planned owner: dev2 priority: medium id: T-002 depends_on: T-001</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>10 / 11</span>
+  </div>
+</div>
+<div class="slide slide-next-steps" data-slide="11">
+  <div class="slide-content">
+    <h1 class="slide-title">TASKS (2/2)</h1>
+    
+    <div class="slide-body"><p>[TASK-3] description: Implement task CRUD via SQLite adapter status: planned owner: dev1 priority: high id: T-003 depends_on: T-001</p></div>
+  </div>
+  <div class="slide-footer">
+    <span>11 / 11</span>
+  </div>
+</div>
+</div>
+<script>
+(function() {
+  var slides = document.querySelectorAll('.slide');
+  var current = 0;
+
+  function show(index) {
+    slides.forEach(function(s) { s.classList.remove('active'); });
+    if (slides[index]) slides[index].classList.add('active');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      current = Math.min(current + 1, slides.length - 1);
+      show(current);
+    } else if (e.key === 'ArrowLeft') {
+      current = Math.max(current - 1, 0);
+      show(current);
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    var x = e.clientX;
+    if (x > window.innerWidth / 2) {
+      current = Math.min(current + 1, slides.length - 1);
+    } else {
+      current = Math.max(current - 1, 0);
+    }
+    show(current);
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

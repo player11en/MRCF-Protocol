@@ -1,0 +1,67 @@
+[
+  {
+    "title": "My Project",
+    "url": "index.html",
+    "content": "Build a lightweight task management tool that lets small teams coordinate work\nwithout the overhead of enterprise project software.\n\n**Problem:** Existing tools are either too complex or too limited.\n"
+  },
+  {
+    "title": "SUMMARY",
+    "url": "summary.html",
+    "content": "[SUMMARY]\nas_of: 2026-03-25\nphase: Planning\nhealth: on-track\nnext: Define core data model and wire up initial API routes\nopen_tasks: 3\nopen_blockers: 0"
+  },
+  {
+    "title": "VISION",
+    "url": "vision.html",
+    "content": "Build a lightweight task management tool that lets small teams coordinate work\nwithout the overhead of enterprise project software.\n\n**Problem:** Existing tools are either too complex or too limited.\n**Goal:** A focused app that handles the 80% of project coordination needs.\n**Success:** Teams compl"
+  },
+  {
+    "title": "CONTEXT",
+    "url": "context.html",
+    "content": "**Audience:** Small software teams (2–10 people).\n**Constraints:** Must run as a single-page app; no server-side rendering required.\n**Stack:** TypeScript, React, Vite, SQLite (via Tauri for desktop builds).\n**Environment:** macOS and Windows primary, Linux community-supported."
+  },
+  {
+    "title": "STRUCTURE",
+    "url": "structure.html",
+    "content": "## Architecture\n\nSingle-page application with a local-first data layer backed by SQLite.\nSyncing is optional and handled via a lightweight REST adapter.\n\n```\nsrc/\n  components/   — UI layer (React)\n  store/        — State management (Zustand)\n  db/           — SQLite access layer (Tauri plugin)\n  ap"
+  },
+  {
+    "title": "STRUCTURE > Architecture",
+    "url": "structure.html#architecture",
+    "content": "Single-page application with a local-first data layer backed by SQLite.\nSyncing is optional and handled via a lightweight REST adapter.\n\n```\nsrc/\n  components/   — UI layer (React)\n  store/        — S"
+  },
+  {
+    "title": "STRUCTURE > Key Design Decisions",
+    "url": "structure.html#key-design-decisions",
+    "content": "- Local-first: the app works fully offline; sync is additive.\n- No authentication in v1 — single user per device.\n- Tasks are the primary entity; projects group tasks."
+  },
+  {
+    "title": "PLAN",
+    "url": "plan.html",
+    "content": "## Phase 1 — Foundation (weeks 1–2)\nSet up repo, build system, SQLite schema, and basic CRUD.\n\n## Phase 2 — Core UI (weeks 3–5)\nTask list view, create/edit/delete flows, drag-and-drop reorder.\n\n## Phase 3 — Sync (weeks 6–8)\nOptional REST sync adapter, conflict resolution (last-write-wins).\n\n## Phase"
+  },
+  {
+    "title": "PLAN > Phase 1 — Foundation (weeks 1–2)",
+    "url": "plan.html#phase-1-foundation-weeks-1-2",
+    "content": "Set up repo, build system, SQLite schema, and basic CRUD."
+  },
+  {
+    "title": "PLAN > Phase 2 — Core UI (weeks 3–5)",
+    "url": "plan.html#phase-2-core-ui-weeks-3-5",
+    "content": "Task list view, create/edit/delete flows, drag-and-drop reorder."
+  },
+  {
+    "title": "PLAN > Phase 3 — Sync (weeks 6–8)",
+    "url": "plan.html#phase-3-sync-weeks-6-8",
+    "content": "Optional REST sync adapter, conflict resolution (last-write-wins)."
+  },
+  {
+    "title": "PLAN > Phase 4 — Polish & Release (weeks 9–10)",
+    "url": "plan.html#phase-4-polish-release-weeks-9-10",
+    "content": "Keyboard shortcuts, dark mode, packaging, release notes."
+  },
+  {
+    "title": "TASKS",
+    "url": "tasks.html",
+    "content": "[TASK-1]\ndescription: Define SQLite schema for tasks and projects\nstatus: in_progress\nowner: dev1\npriority: high\nid: T-001\n\n[TASK-2]\ndescription: Scaffold React component tree with routing\nstatus: planned\nowner: dev2\npriority: medium\nid: T-002\ndepends_on: T-001\n\n[TASK-3]\ndescription: Implement task "
+  }
+]
