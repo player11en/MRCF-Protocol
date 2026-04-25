@@ -1,6 +1,6 @@
 {
   "name": "mrcf",
-  "version": "0.2.0-beta.1",
+  "version": "3.0.0",
   "description": "AI-native structured document format (.mrcf)",
   "private": true,
   "bin": {

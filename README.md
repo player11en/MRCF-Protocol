@@ -27,7 +27,7 @@ Open it in any editor. Commit it to Git. Every AI session picks up exactly where
 ```mrcf
 ---
 title: My Project
-version: 2.0
+version: 3.0
 created: 2026-03-25
 author: Your Name
 status: active
@@ -81,7 +81,7 @@ Open it in any text editor. Commit it to Git. Let an LLM read it and immediately
 
 ---
 
-## Section model (v2: 5 required + 4 optional)
+## Section model (v3: 5 required + 5 optional)
 
 ### Required sections (must be present)
 
@@ -93,7 +93,7 @@ Open it in any text editor. Commit it to Git. Let an LLM read it and immediately
 | **PLAN** | How it gets done. Phases, milestones, roadmap. |
 | **TASKS** | What’s next. v1 checkboxes or v2 `[TASK-N]` blocks with status, owner, priority. |
 
-### Optional sections (v2 memory layer)
+### Optional sections (v3 memory layer)
 
 | Section | Purpose |
 |---------|---------|
@@ -101,8 +101,19 @@ Open it in any text editor. Commit it to Git. Let an LLM read it and immediately
 | **INSIGHTS** | Learnings from completed tasks — success, failure, or observation, with confidence score. |
 | **DECISIONS** | Architectural and process decisions with rationale and alternatives considered. |
 | **REFERENCES** | Typed links between TASKS, INSIGHTS, and DECISIONS (`derives_from`, `contradicts`, `depends_on`, `validates`). |
+| **ARCHIVE** | Links to external or older `.mrcf` files to prevent the master document from growing too large (solving the infinite scroll problem). |
 
-This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the v2 optional sections turn a project document into a **persistent memory layer** that AI agents improve on every session.
+This structure works for **any project** — software, research, book outlines, business plans, event planning, personal OKRs. The methodology forces clear thinking; the v3 optional sections turn a project document into a **persistent memory layer** that AI agents improve on every session.
+
+---
+
+## What's new in v3.0 (Enterprise Ready)
+
+After extensive field testing with autonomous AI agents, MRCF v3.0 introduces three major features to solve long-term AI context management:
+
+1. **Strict Graph Integrity (No Dangling Pointers):** The `mrcf validate` CLI now throws a hard error if a `REFERENCE` points to a deleted task or decision. This guarantees the AI maintains a perfect Directed Acyclic Graph (DAG) of the project's logic over time.
+2. **Code Anchors:** Tasks, Insights, and Decisions can now strictly bind to specific source files via `anchor: @[file/path.js]`. This allows AI agents to instantly open the relevant code when reading a historical decision.
+3. **Archiving (The Infinite Scroll Fix):** Long-running projects accumulate hundreds of decisions. The new `ARCHIVE` section allows a master `project.mrcf` to link out to `sprint-1.mrcf` and `sprint-2.mrcf`, keeping the active memory footprint small while retaining perfect history.
 
 ---
 

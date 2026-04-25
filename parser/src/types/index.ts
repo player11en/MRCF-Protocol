@@ -60,6 +60,8 @@ export interface MrcfTask {
   relatedInsights?: string[];
   /** Line number in the source file (1-based) */
   lineNumber?: number;
+  /** v3: Source code anchors bound to this task */
+  anchors?: string[];
 }
 
 // ─── v2 Block Types ───────────────────────────────────────────────────────────
@@ -93,6 +95,8 @@ export interface MrcfInsightBlock {
   source?: string;
   /** Line number in source file (1-based) */
   lineNumber?: number;
+  /** v3: Source code anchors bound to this insight */
+  anchors?: string[];
 }
 
 /** Impact level of a decision */
@@ -112,6 +116,8 @@ export interface MrcfDecisionBlock {
   impact?: DecisionImpact;
   /** Line number in source file (1-based) */
   lineNumber?: number;
+  /** v3: Source code anchors bound to this decision */
+  anchors?: string[];
 }
 
 /** Relationship type between two entities */
@@ -142,6 +148,16 @@ export interface MrcfAssetReference {
   lineNumber?: number;
 }
 
+/** v3: A link to an archived or external .mrcf file */
+export interface MrcfArchiveLink {
+  /** Text description of the archive */
+  description: string;
+  /** Path to the .mrcf file */
+  path: string;
+  /** Line number in the source file (1-based) */
+  lineNumber?: number;
+}
+
 // ─── Sections ────────────────────────────────────────────────────────────────
 
 /** The five required + four optional standard section names defined by MRCF v2 */
@@ -154,7 +170,8 @@ export type StandardSectionName =
   | 'TASKS'
   | 'INSIGHTS'
   | 'DECISIONS'
-  | 'REFERENCES';
+  | 'REFERENCES'
+  | 'ARCHIVE';
 
 /** The five sections required for a valid MRCF document */
 export type RequiredSectionName = 'VISION' | 'CONTEXT' | 'STRUCTURE' | 'PLAN' | 'TASKS';
@@ -198,6 +215,8 @@ export interface MrcfSection {
   decisions?: MrcfDecisionBlock[];
   /** Parsed REFERENCES links (populated when name === 'REFERENCES') */
   references?: MrcfReferenceLink[];
+  /** Parsed ARCHIVE links (populated when name === 'ARCHIVE') */
+  archiveLinks?: MrcfArchiveLink[];
 }
 
 export interface MrcfSubsection {
@@ -287,6 +306,7 @@ export const STANDARD_SECTIONS: readonly StandardSectionName[] = [
   'INSIGHTS',
   'DECISIONS',
   'REFERENCES',
+  'ARCHIVE',
 ] as const;
 
 /** The five sections that MUST be present for a valid v2 document */

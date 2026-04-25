@@ -8,6 +8,7 @@ import type {
   MrcfInsightBlock,
   MrcfDecisionBlock,
   MrcfReferenceLink,
+  MrcfArchiveLink,
   InsightType,
   DecisionImpact,
   ReferenceRelationship,
@@ -73,6 +74,13 @@ function parseTasks(lines: string[], baseLineNumber: number): MrcfTask[] {
         if (key === 'related_insights') {
           const raw = value.replace(/[\[\]]/g, '');
           current.relatedInsights = raw
+            .split(',')
+            .map((v) => v.trim())
+            .filter(Boolean);
+        }
+        if (key === 'anchor' || key === 'anchors') {
+          const raw = value.replace(/[\[\]]/g, '');
+          current.anchors = raw
             .split(',')
             .map((v) => v.trim())
             .filter(Boolean);
@@ -175,9 +183,16 @@ function parseInsights(lines: string[], baseLineNumber: number): MrcfInsightBloc
       description: kv['description'] ?? '',
       confidence: confidence !== undefined && !isNaN(confidence) ? confidence : undefined,
       source: kv['source'],
+      anchors: parseAnchors(kv),
       lineNumber: baseLineNumber + block.lineOffset,
     };
   });
+}
+
+function parseAnchors(kv: Record<string, string>): string[] | undefined {
+  const raw = kv['anchor'] || kv['anchors'];
+  if (!raw) return undefined;
+  return raw.replace(/[\[\]]/g, '').split(',').map(v => v.trim()).filter(Boolean);
 }
 
 /**
@@ -199,6 +214,7 @@ function parseDecisions(lines: string[], baseLineNumber: number): MrcfDecisionBl
       reason: kv['reason'] ?? '',
       alternatives: kv['alternatives'],
       impact,
+      anchors: parseAnchors(kv),
       lineNumber: baseLineNumber + block.lineOffset,
     };
   });
@@ -234,6 +250,24 @@ function parseReferences(lines: string[], baseLineNumber: number): MrcfReference
       from: m[1],
       to: m[2],
       relationship,
+      lineNumber: baseLineNumber + i,
+    });
+  }
+  return links;
+}
+
+// ─── Archive parsing ─────────────────────────────────────────────────────────
+
+const ARCHIVE_RE = /^- \[([^\]]+)\]\(([^)]+)\)/;
+function parseArchive(lines: string[], baseLineNumber: number): MrcfArchiveLink[] {
+  const links: MrcfArchiveLink[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const m = line.match(ARCHIVE_RE);
+    if (!m) continue;
+    links.push({
+      description: m[1].trim(),
+      path: m[2].trim(),
       lineNumber: baseLineNumber + i,
     });
   }
@@ -447,6 +481,10 @@ export function parseSections(
       ? parseReferences(contentLines, startLine + 1)
       : undefined;
 
+    const archiveLinks = name === 'ARCHIVE'
+      ? parseArchive(contentLines, startLine + 1)
+      : undefined;
+
     sections.push({
       name,
       isStandard,
@@ -461,6 +499,7 @@ export function parseSections(
       insights: insights && insights.length > 0 ? insights : undefined,
       decisions: decisions && decisions.length > 0 ? decisions : undefined,
       references: references && references.length > 0 ? references : undefined,
+      archiveLinks: archiveLinks && archiveLinks.length > 0 ? archiveLinks : undefined,
     });
   };
 

@@ -217,7 +217,7 @@ function checkReferenceIntegrity(doc: MrcfDocument): ValidationIssue[] {
   for (const ref of refsSection.references) {
     if (!knownIds.has(ref.from)) {
       issues.push({
-        severity: 'warning',
+        severity: 'error',
         code: 'V-009',
         message: `Reference source "${ref.from}" does not match any known task, insight, or decision ID`,
         line: ref.lineNumber,
@@ -225,7 +225,7 @@ function checkReferenceIntegrity(doc: MrcfDocument): ValidationIssue[] {
     }
     if (!knownIds.has(ref.to)) {
       issues.push({
-        severity: 'warning',
+        severity: 'error',
         code: 'V-009',
         message: `Reference target "${ref.to}" does not match any known task, insight, or decision ID`,
         line: ref.lineNumber,
