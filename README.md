@@ -28,7 +28,7 @@ Open it in any editor. Commit it to Git. Every AI session picks up exactly where
 ---
 title: My Project
 version: 3.0
-created: 2026-03-25
+created: 2026-04-25
 author: Your Name
 status: active
 ---
@@ -36,7 +36,7 @@ status: active
 # SUMMARY
 
 [SUMMARY]
-as_of: 2026-03-25
+as_of: 2026-04-25
 phase: Development
 health: on-track
 next: Build ingestion pipeline
